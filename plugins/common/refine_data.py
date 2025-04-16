@@ -18,9 +18,11 @@ def save_to_db(**kwargs):
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
     df["END_DATE"] = df["END_DATE"].dt.date
 
+
+    # follow schema
     columns = ['TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT']
     df = df[columns]
-    # 컬럼명 변경
+
     df = df.rename(columns={
         'TITLE':'title',
         'CODENAME':'category',

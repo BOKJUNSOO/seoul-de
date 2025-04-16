@@ -55,3 +55,7 @@ CREATE SCHEMA datawarehouse;
 ### airflow run!
 
 `localhost:8081` -> `DAGs` 에서 `datapipline_with_seoul_data` 선택 및 실행
+
+### Note
+`get_culture_data` 모듈에서 요청을 조절할 수 있습니다.\
+테스트 환경에서 하드코딩을 해놓은 상태입니다.\
