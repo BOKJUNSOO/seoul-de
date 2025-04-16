@@ -12,6 +12,11 @@ def save_to_db(**kwargs):
     # refine
     df["BOOL_FEE"] = df["IS_FREE"].map({'유료':False,
                                        '무료':True})
+    
+    df["STRTDATE"] = pd.to_datetime(df["STRTDATE"])
+    df["STRTDATE"] = df["STRTDATE"].dt.date
+    df["END_DATE"] = pd.to_datetime(df["END_DATE"])
+    df["END_DATE"] = df["END_DATE"].dt.date
 
     columns = ['TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT']
     df = df[columns]
