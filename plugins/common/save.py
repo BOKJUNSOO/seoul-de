@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import String ,DateTime, Boolean, String, Float
+from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer
 import pandas as pd
 import psycopg2
 
@@ -24,8 +24,9 @@ class postgreSQL():
             if_exists='replace',
             index=False,
             dtype={
+                'event_id':Integer,
                 'title': String,
-                'category': String,
+                'category_id': String,
                 'gu': String,
                 'location':String,
                 'start_date':DateTime,
@@ -36,7 +37,8 @@ class postgreSQL():
                 'longtitude':Float,
                 'hompage':String,
                 'image_url':String,
-                'target_user':String
+                'target_user':String,
+                'event_description':String
             }
         )
     # def create_database_if_not_exists(self):
