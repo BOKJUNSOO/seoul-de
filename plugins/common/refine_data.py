@@ -17,15 +17,17 @@ def save_to_db(**kwargs):
     df["STRTDATE"] = df["STRTDATE"].dt.date
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
     df["END_DATE"] = df["END_DATE"].dt.date
-
+    # add column
+    df["ROW_NUMBER"] = range(len(df))
 
     # follow schema
-    columns = ['TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT']
+    columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
     df = df[columns]
 
     df = df.rename(columns={
+        'ROW_NUMBER':'event_id',
         'TITLE':'title',
-        'CODENAME':'category',
+        'CODENAME':'category_id',
         'GUNAME':'gu',
         'PLACE':'location',
         'STRTDATE':'start_date',
@@ -37,7 +39,8 @@ def save_to_db(**kwargs):
         'HMPG_ADDR':'homepage',
         'MAIN_IMG':'image_url',
         'ORG_LINK':'detail_url',
-        'USE_TRGT':'target_user'
+        'USE_TRGT':'target_user',
+        'ALT':'event_description'
     })
 
     print("refine task done!")
