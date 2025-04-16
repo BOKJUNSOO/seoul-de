@@ -7,7 +7,7 @@ postgreSQL port : 5432
 ### project run
 - 컨테이너 빌드
 ```
-git clone https://github.com/BOKJUNSOO/seoul-de
+git clone https://github.com/BOKJUNSOO/seoul-de.git
 docker compose up -d
 ```
 
