@@ -1,0 +1,5 @@
+logs/
+plugins/__pycache__
+plugins/common/__pycache__
+postgres-db-volume/
+dags/__pycache__
