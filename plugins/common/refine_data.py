@@ -35,7 +35,8 @@ def save_to_db(**kwargs):
 
     print("refine task done!")
     print("--------save task is running--------")
-    database = postgreSQL('backend')
+    # database -> schema -> table 순으로 인자 전달
+    database = postgreSQL('backend','datawarehouse','Event')
     database.save_data(df)
     print("save task done!")
 

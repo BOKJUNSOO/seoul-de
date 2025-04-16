@@ -4,21 +4,23 @@ import pandas as pd
 import psycopg2
 
 class postgreSQL():
-    def __init__(self,db_name):
+    def __init__(self,db_name,schema,table_name):
         self.db_user = 'airflow'
         self.db_password = 'airflow'
         self.db_host = 'postgres'
         self.db_port = '5432'
         self.db_name = db_name
+        self.schema = schema
+        self.table_name = table_name
 
     def save_data(self, df:pd.DataFrame):
         # self.create_database_if_not_exists()
 
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
-            self.db_name,
+            name=self.table_name,
             con=engine,
-            schema='datawarehouse',
+            schema=self.schema,
             if_exists='replace',
             index=False,
             dtype={
