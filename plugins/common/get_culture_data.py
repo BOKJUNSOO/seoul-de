@@ -43,6 +43,7 @@ def get_data(api_key:str,**kwargs):
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
+    print("서울 문화행사 정보 요청")
 
     try:
         url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/1/1"
@@ -61,12 +62,13 @@ def get_data(api_key:str,**kwargs):
         
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
-        end_page = 300 # 테스트용 상수 지울것
+         # 테스트용 상수 지울것!!!
+        end_page = 60
 
         print(f"전체 데이터 건수: {end_page}")
 
     except requests.exceptions.RequestException as e:
-        print(f"Open Api Server Error!")
+        print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")
     
     # 페이지 수 만큼 api 요청
     for page in range(2, end_page+1):
@@ -106,13 +108,13 @@ def get_data(api_key:str,**kwargs):
             print(f"[예외 발생] 페이지 {page} - {e}")
             continue
 
-    
+    # json to table
     df = pd.DataFrame(result_list)
     print(f"최종 수집 건수: {len(df)}")
     print(df)
     # task instance
     ti = kwargs['ti']
-    ti.xcom_push(key='dataframe', value=df)
+    ti.xcom_push(key='row_dataframe', value=df)
 
 if __name__ == "__main__":
     # 테스트시 apikey, 오늘날짜 명시 필요
