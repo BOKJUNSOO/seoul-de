@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer
 import pandas as pd
-import psycopg2
 
 class postgreSQL():
     def __init__(self,db_name,schema,table_name):
@@ -13,9 +12,10 @@ class postgreSQL():
         self.schema = schema
         self.table_name = table_name
 
-    def save_data(self, df:pd.DataFrame):
-        # self.create_database_if_not_exists()
-
+    def save_to_event_table(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(key='refine_dataframe')
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
             name=self.table_name,
@@ -41,27 +41,25 @@ class postgreSQL():
                 'event_description':String
             }
         )
-    # def create_database_if_not_exists(self):
-    #     # 기본 DB에 연결
-    #     connection = psycopg2.connect(
-    #         dbname='postgres',  # 기본 데이터베이스로 연결
-    #         user=self.db_user,
-    #         password=self.db_password,
-    #         host=self.db_host,
-    #         port=self.db_port
-    #     )
-    #     connection.autocommit = True
-    #     cursor = connection.cursor()
-
-    #     # 데이터베이스가 존재하는지 확인
-    #     cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{self.db_name}'")
-    #     exists = cursor.fetchone()
-    #     if not exists:
-    #         cursor.execute(f'CREATE DATABASE {self.db_name}')
-    #         print(f" Database {self.db_name} created successfully!")
-    #     else:
-    #         print(f" Database {self.db_name} already exists.")
+        print("save task done!")
         
-    #     cursor.close()
-    #     connection.close()
-        
+    def save_to_subway_table(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(key='refine_dataframe')
+        engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        df.to_sql(
+            name=self.table_name,
+            con=engine,
+            schema=self.schema,
+            if_exists='replace',
+            index=False,
+            dtype={
+                'station_id':String,
+                'name':String,
+                'line':String,
+                'latitude':Float,
+                'longitude':Float
+            }
+        )
+        print("save task done!")
