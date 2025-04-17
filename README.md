@@ -41,7 +41,7 @@ psql -U airflow
 ---
 - `backend` database 생성 (메타데이터와 따로 관리하기 위해)
 ```
-CREATE DATABASE backend;
+CREATE DATABASE seoulmoa;
 ```
 ---
 - `backend` 데이터베이스 접속 및 `datawarehouse` 스키마 생성
