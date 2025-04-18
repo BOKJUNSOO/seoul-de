@@ -44,10 +44,10 @@ psql -U airflow
 CREATE DATABASE seoulmoa;
 ```
 ---
-- `backend` 데이터베이스 접속 및 `datawarehouse` 스키마 생성
+- `seoulmoa` 데이터베이스 접속 및 `datawarehouse` 스키마 생성
 - 테이블은 코드 자체적으로 생성을하고 지정한 스키마에 저장합니다.
 ```
-\c backend
+\c seoulmoa
 CREATE SCHEMA datawarehouse;
 ```
 ---
