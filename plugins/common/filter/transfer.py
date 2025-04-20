@@ -1,5 +1,7 @@
 import pandas as pd
-from common.repository.repository import postgreSQL
+# 원하는 형태로 테이블을 정제하는 모듈
+# 사전에 정의한 스키마로 컬러머명을 변경
+
 def subwaystation_data(**kwargs):
     """
     Subway 테이블을 생성하는 airflow task 함수
