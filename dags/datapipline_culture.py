@@ -3,8 +3,8 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.get_culture_data import get_data
-from common.transfer import event_data
-from common.repository.repository import postgreSQL
+from common.filter.transfer import event_data
+from common.filter.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
