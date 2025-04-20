@@ -1,8 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from common.get_culture_data import get_data
-from common.refine import refine_event_data
 from common.repository.repository import postgreSQL
 import pendulum
 
@@ -13,7 +11,7 @@ read_from_db = postgreSQL("seoulmoa","datawarehouse","Event") # test with event 
 
 with DAG (
     dag_id='MLops_pipline',
-    schedule='0 0 */2 * *',
+    schedule='30 1 * * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
     catchup=False
 ) as dag:
