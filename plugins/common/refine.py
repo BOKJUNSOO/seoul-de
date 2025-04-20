@@ -1,5 +1,5 @@
 import pandas as pd
-from common.save import postgreSQL
+from common.repository.repository import postgreSQL
 def refine_subway_data(**kwargs):
     """
     Subway 테이블을 생성하는 airflow task 함수
@@ -46,6 +46,10 @@ def refine_event_data(**kwargs):
     df["END_DATE"] = df["END_DATE"].dt.date
     # add column
     df["ROW_NUMBER"] = range(len(df))
+    
+    # refine column
+    condtion = df['CODENAME'].str.contains("축제", na = False)
+    df.loc[condtion,'CODENAME'] = "축제"
 
     # follow schema
     columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
@@ -73,6 +77,5 @@ def refine_event_data(**kwargs):
     print("refine task done!")
     
 
-# if __name__ == "__main__":
-#     df = get_data()
-#     refine_data(df)
+if __name__ == "__main__":
+    pass
