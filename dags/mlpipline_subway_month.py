@@ -10,7 +10,7 @@ import pendulum
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
-save_to_db = postgreSQL("seoulmoa","datawarehouse","MontlySubwaystaion")
+save_to_db = postgreSQL("seoulmoa","datawarehouse","MontlySubwaystation")
 
 with DAG (
     dag_id='MLops_get_monthly_data',
