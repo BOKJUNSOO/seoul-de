@@ -1,5 +1,6 @@
 logs/
 plugins/__pycache__
+plugins/common/filter/__pycache__
 plugins/common/__pycache__
 plugins/common/repository/__pycache__
 plugins/common/base/__pycache__
