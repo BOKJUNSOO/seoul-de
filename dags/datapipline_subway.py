@@ -2,8 +2,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
-from common.get_subway_data import get_data
-from common.refine import refine_subway_data
+from common.base.get_subway_meta_data import get_data
+from common.transfer import subwaystation_data
 from common.repository.repository import postgreSQL
 import pendulum
 
@@ -11,6 +11,7 @@ import pendulum
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
 save_to_db = postgreSQL("seoulmoa","datawarehouse","SubwayStation")
+
 with DAG (
     dag_id='datapipline_subway_seoul_data',
     schedule='0 0 */2 * *',
@@ -26,7 +27,7 @@ with DAG (
 
     refine_data_=PythonOperator(
         task_id = 'refine_data',
-        python_callable=refine_subway_data
+        python_callable=subwaystation_data
     )
 
     save_data_=PythonOperator(

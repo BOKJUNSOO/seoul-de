@@ -2,8 +2,8 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
-from common.get_culture_data import get_data
-from common.refine import refine_event_data
+from common.base.get_culture_data import get_data
+from common.transfer import event_data
 from common.repository.repository import postgreSQL
 import pendulum
 
@@ -27,7 +27,7 @@ with DAG (
 
     refine_data_=PythonOperator(
         task_id="refine_data",
-        python_callable=refine_event_data
+        python_callable=event_data
     )
 
     save_to_db_=PythonOperator(
