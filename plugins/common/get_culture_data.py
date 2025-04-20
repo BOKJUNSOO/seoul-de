@@ -63,7 +63,7 @@ def get_data(api_key:str,**kwargs):
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
          # 테스트용 상수 지울것!!!
-        end_page = 60
+        end_page = 100
 
         print(f"전체 데이터 건수: {end_page}")
 
