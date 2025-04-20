@@ -152,9 +152,10 @@ def subwaystation_daily_data(**kwargs):
         'USE_YMD':'service_date',
         'SBWY_ROUT_LN_NM':'line',
         'SBWY_STNS_NM':'name',
-        'GTONE_TNOPE':'get_on_d',
+        'GTON_TNOPE':'get_on_d',
         'GTOFF_TNOPE':'get_off_d'
     })
+    df = df.drop(columns='REG_YMD')
 
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
