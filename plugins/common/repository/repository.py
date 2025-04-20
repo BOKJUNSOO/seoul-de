@@ -4,6 +4,12 @@ import psycopg2
 import pandas as pd
 
 class postgreSQL():
+    """
+    실제 Database postgresl에 접근하는 class
+
+    read : connection 지정
+    write : 데이터 타입 및 스키마 지정
+    """
     def __init__(self,db_name,schema,table_name):
         # production 환경에서는 db_user, password ,ip 를 Variable로 처리
         self.db_user = 'airflow'
@@ -141,6 +147,51 @@ class postgreSQL():
                 'line':String,
                 'latitude':Float,
                 'longitude':Float
+            }
+        )
+        print("save task done!")
+    
+    def save_to_subwayMontly_table(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(key='refine_dataframe')
+        engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        df.to_sql(
+            name=self.table_name,
+            con=engine,
+            schema=self.schema,
+            if_exists='append',
+            index=False,
+            dtype={
+                'use_month':String,
+                'station_id':String,
+                'line':String,
+                'hour':Integer,
+                'get_on':Integer,
+                'get_off':Integer,
+                'total':Integer
+            }
+        )
+        print("save task done!")
+
+    def save_to_subwayDaily_table(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(key='refine_dataframe')
+
+        engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        df.to_sql(
+            name=self.table_name,
+            con=engine,
+            schema=self.schema,
+            if_exists='append',
+            index=False,
+            dtype={
+                'service_date':String,
+                'line':String,
+                'name':String,
+                'get_on_d':Integer,
+                'get_off_d':Integer
             }
         )
         print("save task done!")
