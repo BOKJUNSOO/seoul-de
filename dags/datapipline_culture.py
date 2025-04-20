@@ -4,7 +4,7 @@ from airflow.models import Variable
 
 from common.get_culture_data import get_data
 from common.refine import refine_event_data
-from common.save import postgreSQL
+from common.repository.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
