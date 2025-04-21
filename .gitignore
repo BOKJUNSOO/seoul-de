@@ -8,3 +8,5 @@ postgres-db-volume/
 dags/__pycache__
 test.ipynb
 plugins/common/get_culture_data.py
+plugins/common/util/__pycache__
+plugins/common/base/init/__pycache__
