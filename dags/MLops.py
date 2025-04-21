@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from common.filter.repository import postgreSQL
+from common.repository.repository import postgreSQL
 import pendulum
 
 # target to read/ write table
@@ -11,6 +11,7 @@ read_from_db = postgreSQL("seoulmoa","datawarehouse","MontlySubwaystation") # te
 
 with DAG (
     dag_id='MLops_pipline',
+    description="(1일단위) 지하철 사용량 예측 테이블을 생성하는 DAG 입니다. 매일 01시30분에 실행됩니다.",
     schedule='30 1 * * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
     catchup=False
