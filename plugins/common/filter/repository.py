@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer
+from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer, Text
 import psycopg2
 import pandas as pd
 
@@ -125,7 +125,7 @@ class postgreSQL():
                 'hompage':String,
                 'image_url':String,
                 'target_user':String,
-                'event_description':String
+                'event_description':Text
             }
         )
         print("save task done!")

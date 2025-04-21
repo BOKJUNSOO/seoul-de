@@ -47,7 +47,7 @@ def event_data(**kwargs):
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
     df["END_DATE"] = df["END_DATE"].dt.date
     # add column
-    df["ROW_NUMBER"] = range(len(df))
+    df["ROW_NUMBER"] = range(1,len(df)+1)
     
     # refine column
     condtion = df['CODENAME'].str.contains("축제", na = False)
