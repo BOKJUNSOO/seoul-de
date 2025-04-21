@@ -4,7 +4,7 @@ from airflow.models import Variable
 
 from common.base.get_subway_meta_data import get_data
 from common.filter.transfer import subwaystation_data
-from common.filter.repository import postgreSQL
+from common.repository.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
@@ -14,6 +14,7 @@ save_to_db = postgreSQL("seoulmoa","datawarehouse","subway_station")
 
 with DAG (
     dag_id='datapipline_subway_seoul_data',
+    description="(2일단위) 지하철 역사 마스터 정보를 수집하는 DAG입니다. 격일 자정 00시에 실행됩니다.",
     schedule='0 0 */2 * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
     catchup=False
