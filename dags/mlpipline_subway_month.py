@@ -3,14 +3,14 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.get_subway_montly_data import get_data
-from common.transfer import subwaystation_montly_data
-from common.repository.repository import postgreSQL
+from common.filter.transfer import subwaystation_montly_data
+from common.filter.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
-save_to_db = postgreSQL("seoulmoa","datawarehouse","MontlySubwaystaion")
+save_to_db = postgreSQL("seoulmoa","datawarehouse","MontlySubwaystation")
 
 with DAG (
     dag_id='MLops_get_monthly_data',
