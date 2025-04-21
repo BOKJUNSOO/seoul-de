@@ -9,7 +9,7 @@ def get_data(api_key,**kwargs):
     airflow task instance에 해당 데이터를 push 한다
     """
 
-    BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(days=3).strftime("%Y%m%d")
+    BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(days=4).strftime("%Y%m%d")
     print(BATCH_DATE + "(년월) BATCH 처리를 시작합니다.")
 
     try:
