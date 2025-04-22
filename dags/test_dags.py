@@ -11,6 +11,7 @@ import pendulum
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
 save_to_db = postgreSQL("seoulmoa","datawarehouse","subway_data_month_hour")
+# 전달의 시간대별 데이터를 수집하는 dag
 
 with DAG (
     dag_id='MLops_get_prev_month_data',

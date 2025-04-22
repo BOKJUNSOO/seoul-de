@@ -14,7 +14,7 @@ save_to_db = postgreSQL("seoulmoa","datawarehouse","subway_data_prev_month")
 
 with DAG (
     dag_id='MLops_init_get_lastmonth',
-    description="(최초1회!! 이후 unpause 바랍니다.)초기 예측 모델 데이터셋 구축을 위한 DAG입니다. 추후에는 일일데이터 수집으로 대체되며 최초 1회만 실행합니다.",
+    description="(init)(최초1회 이후 unpause 바랍니다.)초기 예측 모델 데이터셋 구축을 위한 DAG입니다. 추후에는 일일데이터 수집으로 대체되며 최초 1회만 실행합니다.",
     schedule='0 0 7 * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
     catchup=False
