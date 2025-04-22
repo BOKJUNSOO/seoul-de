@@ -36,7 +36,7 @@ def make_hourly_dataframe(**kwargs):
 
     merged_df['row_number'] = range(1,end_)
 
-    select_col = ['row_number','name','date','hour','predicted_total']
+    select_col = ['row_number','line','name','date','hour','predicted_total']
     merged_df = merged_df[select_col]
 
     ti.xcom_push(key='row_dataframe',value=merged_df)

@@ -172,6 +172,7 @@ def subwaystation_prediction_hourly_data(**kwargs):
     df = ti.xcom_pull(key='row_dataframe')
     df = df.rename(columns ={
         'row_number':'row_number',
+        'line':'line',
         'name':'name',
         'date':'service_date',
         'hour':'hour',

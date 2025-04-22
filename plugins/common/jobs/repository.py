@@ -207,9 +207,26 @@ class postgreSQL():
             dtype={
                 'row_number':Integer,
                 'name':String,
+                'line':String,
                 'service_date':DateTime,
                 'hour':Integer,
                 'predicted_get_on_d':Integer
             }
+        )
+        print("save task done!")
+    
+    # for test!
+    def save_to_daily_predict(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(task_ids='make_daily_prediction',key='daily_dataframe')
+
+        engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        df.to_sql(
+            name=self.table_name,
+            con=engine,
+            schema=self.schema,
+            if_exists='replace',
+            index=False,
         )
         print("save task done!")
