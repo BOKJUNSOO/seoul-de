@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from common.repository.repository import postgreSQL
+from common.jobs.repository import postgreSQL
 import pendulum
 
 # target to read/ write table

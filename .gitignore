@@ -1,12 +1,15 @@
 logs/
-plugins/__pycache__
-plugins/common/filter/__pycache__
-plugins/common/__pycache__
-plugins/common/repository/__pycache__
-plugins/common/base/__pycache__
 postgres-db-volume/
 dags/__pycache__
 test.ipynb
-plugins/common/get_culture_data.py
-plugins/common/util/__pycache__
-plugins/common/base/init/__pycache__
+# plugins/__pycache__
+# plugins/common/jobs/__pycache__
+# plugins/common/jobs/__pycache__
+# plugins/common/__pycache__
+# plugins/common/repository/__pycache__
+# plugins/common/base/__pycache__
+# plugins/common/get_culture_data.py
+# plugins/common/base/util/__pycache__
+# plugins/common/base/init/__pycache__
+# plugins/common/base/init/__pycache__
+plugins/common/**/__pycache__/

@@ -3,8 +3,8 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.get_subway_montly_data import get_data
-from common.filter.transfer import subwaystation_montly_data
-from common.repository.repository import postgreSQL
+from common.jobs.transfer import subwaystation_montly_data
+from common.jobs.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
