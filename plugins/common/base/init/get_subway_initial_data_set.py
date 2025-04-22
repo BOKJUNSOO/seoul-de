@@ -11,8 +11,9 @@ def get_data(api_key,**kwargs):
     airflow task instance에 해당 데이터를 push 한다
     """
     BATCH_YEAR = int(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y"))
-    BATCH_DAY = int(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%m"))
-    dates=get_month_dates(BATCH_YEAR,BATCH_DAY)
+    BATCH_MONTH = int(kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(months=1).strftime("%m"))
+    
+    dates=get_month_dates(BATCH_YEAR,BATCH_MONTH)
     for date in dates:
         print(f'{date} 일자의 데이터를 요청합니다.')
         try:
