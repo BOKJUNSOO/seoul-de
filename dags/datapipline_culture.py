@@ -3,16 +3,17 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.get_culture_data import get_data
-from common.transfer import event_data
-from common.repository.repository import postgreSQL
+from common.jobs.transfer import event_data
+from common.jobs.repository import postgreSQL
 import pendulum
 
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
-save_to_db = postgreSQL("seoulmoa","datawarehouse","Event")
+save_to_db = postgreSQL("seoulmoa","datawarehouse","event")
 with DAG (
-    dag_id="datapipline_curture_seoul_data",
+    dag_id="datapipline_event_seoul_data",
+    description="(1일단위) 문화행사 정보를 수집하는 DAG 입니다. 매일 00시에 DAG가 실행됩니다.",
     schedule="0 0 * * *",
     start_date=pendulum.datetime(2025,4,16, tz='Asia/Seoul'),
     catchup=False

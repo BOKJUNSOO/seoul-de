@@ -1,5 +1,7 @@
 import pandas as pd
-from common.repository.repository import postgreSQL
+# 원하는 형태로 테이블을 정제하는 모듈
+# 사전에 정의한 스키마로 컬러머명을 변경
+
 def subwaystation_data(**kwargs):
     """
     Subway 테이블을 생성하는 airflow task 함수
@@ -45,7 +47,7 @@ def event_data(**kwargs):
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
     df["END_DATE"] = df["END_DATE"].dt.date
     # add column
-    df["ROW_NUMBER"] = range(len(df))
+    df["ROW_NUMBER"] = range(1,len(df)+1)
     
     # refine column
     condtion = df['CODENAME'].str.contains("축제", na = False)
@@ -150,13 +152,32 @@ def subwaystation_daily_data(**kwargs):
         'USE_YMD':'service_date',
         'SBWY_ROUT_LN_NM':'line',
         'SBWY_STNS_NM':'name',
-        'GTONE_TNOPE':'get_on_d',
+        'GTON_TNOPE':'get_on_d',
         'GTOFF_TNOPE':'get_off_d'
     })
+    df = df.drop(columns='REG_YMD')
 
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
+def subwaystation_prediction_hourly_data(**kwargs):
+    """
+    예측한 시간대별 데이터를 pull 하고 
+
+    스키마지정
+    """
+    print("start refine task!")
+    ti = kwargs['ti']
+    #
+    df = ti.xcom_pull(key='row_dataframe')
+    df = df.rename(columns ={
+        'row_number':'row_number',
+        'line':'line',
+        'name':'name',
+        'date':'service_date',
+        'hour':'hour',
+        'predicted_total':'predicted_total'
+    })
 
 if __name__ == "__main__":
     pass
