@@ -6,7 +6,7 @@ import pandas as pd
 result_list=[]
 def get_data(api_key,**kwargs):
     """
-    전달받은 api_key를 이용해 일일단위 지하철 이용량 데이터를 요청하고
+    전달받은 api_key를 이용해 "전달의 모든" 일일 지하철 이용량 데이터를 요청하고
 
     airflow task instance에 해당 데이터를 push 한다
     """
