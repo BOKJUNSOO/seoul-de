@@ -71,10 +71,6 @@ class postgreSQL():
             if table not in tables:
                 raise RuntimeError(f"{table} 테이블을 찾을 수 없습니다.")
 
-            # act query
-            cur.execute('SELECT * FROM "Event"')
-            #rows = cur.fetchmany()
-
             # table 객체 저장
             #colnames = [desc[0] for desc in cur.description]
             df = pd.read_sql_query(f'SELECT * FROM "{table}"', conn)
@@ -82,7 +78,7 @@ class postgreSQL():
             
             # 모델에 전달하기 위해 데이터 저장
             ti = kwargs['ti']
-            ti.xcom_push(key='feature_dataframe',value=df)
+            ti.xcom_push(key=f"{table}",value=df)
             print("success for read db!")
 
         except psycopg2.Error as e:
@@ -192,6 +188,28 @@ class postgreSQL():
                 'name':String,
                 'get_on_d':Integer,
                 'get_off_d':Integer
+            }
+        )
+        print("save task done!")
+
+    def save_to_hourly_predict(self,**kwargs):
+        print("--------save task is running--------")
+        ti = kwargs['ti']
+        df = ti.xcom_pull(key='row_dataframe')
+
+        engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        df.to_sql(
+            name=self.table_name,
+            con=engine,
+            schema=self.schema,
+            if_exists='replace',
+            index=False,
+            dtype={
+                'row_number':Integer,
+                'name':String,
+                'service_date':DateTime,
+                'hour':Integer,
+                'predicted_get_on_d':Integer
             }
         )
         print("save task done!")
