@@ -160,6 +160,23 @@ def subwaystation_daily_data(**kwargs):
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
+def subwaystation_prediction_hourly_data(**kwargs):
+    """
+    예측한 시간대별 데이터를 pull 하고 
+
+    스키마지정
+    """
+    print("start refine task!")
+    ti = kwargs['ti']
+    #
+    df = ti.xcom_pull(key='row_dataframe')
+    df = df.rename(columns ={
+        'row_number':'row_number',
+        'name':'name',
+        'date':'service_date',
+        'hour':'hour',
+        'predicted_total':'predicted_total'
+    })
 
 if __name__ == "__main__":
     pass
