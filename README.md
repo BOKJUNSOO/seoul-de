@@ -39,7 +39,7 @@ pw: airflow
 ```
 `Connection Id` : seoul_moa_event_conn
 `Connection Type`: Postgres
-`Host` : posetgres
+`Host` : postgres
 `Database`: seoulmoa
 `Login` : airflow // 아마 적혀있을 겁니다.
 `Port` : 5432
