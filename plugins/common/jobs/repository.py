@@ -20,6 +20,62 @@ class postgreSQL():
         self.schema = schema
         self.table_name = table_name
     
+    # check_database - branchOperator callable function
+    def check_table(self,**kwargs):
+        print("--------check database is running--------")
+        ti = kwargs['ti']
+        conn_params = {
+            "host": self.db_host,
+            "port": self.db_port,
+            "dbname":self.db_name,
+            "user":self.db_user,
+            "password":self.db_password
+        }
+        table = self.table_name # target_table
+
+        # connection 
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        # search db, schema
+        cur.execute("SELECT current_database(), current_schema();")
+        db, schema = cur.fetchone()
+        print(f"연결된 DB: {db}, search_path 스키마: {schema}")
+
+        # schema list
+        cur.execute("SELECT schema_name FROM information_schema.schemata;")
+        schemata = [row[0] for row in cur.fetchall()]
+        print("스키마:", schemata)
+        # check 'datawarehouse' schema
+        if self.schema not in schemata:
+            raise RuntimeError(f"{self.schema} 스키마를 설정해주세요.")
+        
+        # st search_path
+        cur.execute("SET search_path TO datawarehouse;")
+        print("search_path --> datawarehouse 설정.")
+
+        # search table
+        cur.execute("""
+              SELECT table_name
+              FROM information_schema.tables
+              WHERE table_schema = 'datawarehouse';
+            """)
+        
+        tables = [row[0] for row in cur.fetchall()]
+        print("datawarehouse 스키마의 테이블들:", tables)
+        
+        if table not in tables:
+            print(f"{table}이 존재하지 않습니다.")
+            ti.xcom_push(key="key",value="save_to_event_")
+            next_task="make_event_data_"
+            
+            return next_task
+        else:
+            print(f"{table}이 존재합니다. sync table을 생성합니다.")
+            ti.xcom_push(key="key",value="save_to_sync_")
+            next_task="make_sync_data_"
+            return next_task
+
     # getter
     def read_table(self,**kwargs):
         print("--------read task is running--------")
@@ -74,12 +130,13 @@ class postgreSQL():
             # table 객체 저장
             #colnames = [desc[0] for desc in cur.description]
             df = pd.read_sql_query(f'SELECT * FROM "{table}"', conn)
-            df.info()
+            print(f"success for read {table}db!")
+            
             
             # 모델에 전달하기 위해 데이터 저장
             ti = kwargs['ti']
             ti.xcom_push(key=f"{table}",value=df)
-            print("success for read db!")
+            ti.xcom_push(key="row_number",value=len(df))
 
         except psycopg2.Error as e:
             print(f"psycopg2 error: {e}")
@@ -109,7 +166,7 @@ class postgreSQL():
             dtype={
                 'event_id':Integer,
                 'title': String,
-                'category_id': String,
+                'category_name': String,
                 'gu': String,
                 'location':String,
                 'start_date':DateTime,
