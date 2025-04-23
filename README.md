@@ -11,6 +11,9 @@ git clone https://github.com/BOKJUNSOO/seoul-de.git
 docker compose up -d
 ```
 
+### Airflow 설정
+총 `2가지` 해주셔야 합니다.
+#### 1. api 키 설정
 - `localhost:8081` 접속
   
 ```
@@ -19,13 +22,35 @@ pw: airflow
 ```
 
 - 키값 설정
+
 ```
 1. 접속후 상단네비게이션 바에서 `Admin` 선택
 2. `Variable` 접속후 `+` 로 키값 설정
 3. `key` 란에 꼭! `seoul_api_key`라고 작성, `Val` 란에 발급받은 키 작성
 ```
+---
+#### 2. connection 설정
+
+
+1. 접속후 상단에 `Admin` 선택
+2. `Connections` 접속후 `+` 로 connection 변수 설정
+
+- 대소문자 확인후 아래와 같이 작성해주세요
+```
+`Connection Id` : seoul_moa_event_conn
+`Connection Type`: Postgres
+`Host` : posetgres
+`Database`: seoulmoa
+`Login` : airflow // 아마 적혀있을 겁니다.
+`Port` : 5432
+```
+<br>
+
+---
+<br>
 
 ### DB 설정
+`1가지만`해주시면 됩니다
 
 컨테이너 내부에서 `schema`와 `database`를 미리 만들어야 합니다.\
 저장할 이름은 `refine_data.py` 에서 설정해줄 수 있습니다.
@@ -54,7 +79,7 @@ CREATE SCHEMA datawarehouse;
 
 ### airflow run!
 
-`localhost:8081` -> `DAGs` 에서 `datapipline_with_seoul_data` 선택 및 실행
+`localhost:8081` -> `DAGs` 실행
 
 ### Note
 `get_culture_data` 모듈에서 요청을 조절할 수 있습니다.\
