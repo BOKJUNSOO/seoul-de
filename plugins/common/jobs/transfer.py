@@ -60,7 +60,7 @@ def event_data(**kwargs):
     df = df.rename(columns={
         'ROW_NUMBER':'event_id',
         'TITLE':'title',
-        'CODENAME':'category_id',
+        'CODENAME':'category_name',
         'GUNAME':'gu',
         'PLACE':'location',
         'STRTDATE':'start_date',
