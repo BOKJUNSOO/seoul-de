@@ -10,8 +10,8 @@ def get_data(api_key,**kwargs):
     """
 
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(days=4).strftime("%Y%m%d")
-    print(BATCH_DATE + "(년월) BATCH 처리를 시작합니다.")
-
+    print(BATCH_DATE + "BATCH 처리를 시작합니다.")
+    print(BATCH_DATE + "모델 Feature 쌓기 위한 데이터 호출중.")
     try:
         url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayStatsNew/1/1/{BATCH_DATE}/'
         first_response = requests.get(url)
