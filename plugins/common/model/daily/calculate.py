@@ -32,11 +32,8 @@ def make_hourly_dataframe(**kwargs):
     # calculate hourly prediction
     merged_df['predicted_total'] = merged_df['usage_ratio'] * merged_df['predicted_get_on_d']
     merged_df['predicted_total'] = merged_df['predicted_total'].astype(int)
-    end_ = len(merged_df)+1
 
-    merged_df['row_number'] = range(1,end_)
-
-    select_col = ['row_number','line','name','date','hour','predicted_total']
+    select_col = ['line','name','date','hour','predicted_total']
     merged_df = merged_df[select_col]
 
     ti.xcom_push(key='row_dataframe',value=merged_df)

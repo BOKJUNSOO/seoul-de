@@ -168,16 +168,22 @@ def subwaystation_prediction_hourly_data(**kwargs):
     """
     print("start refine task!")
     ti = kwargs['ti']
-    #
     df = ti.xcom_pull(key='row_dataframe')
+    #
+    df = df.groupby(['name','date','hour'])['predicted_total'].sum().reset_index()
+    
+    end_ = len(df)
+    df['row_number'] = range(1,end_+1)
+    df = df[['row_number', 'name', 'date', 'hour', 'predicted_total']]
     df = df.rename(columns ={
         'row_number':'row_number',
-        'line':'line',
         'name':'name',
         'date':'service_date',
         'hour':'hour',
         'predicted_total':'predicted_total'
     })
-
+    df.info()
+    ti.xcom_push(key='refine_dataframe',value=df)
+    
 if __name__ == "__main__":
     pass
