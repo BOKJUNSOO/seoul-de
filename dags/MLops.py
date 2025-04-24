@@ -47,12 +47,6 @@ with DAG (
         python_callable=predict_all_for_date
     )
 
-    #test task
-    # test=PythonOperator(
-    #     task_id='test',
-    #     python_callable=save_to_test.save_to_daily_predict
-    # )
-
     read_year_data_=PythonOperator(
         task_id='read_year_day',
         python_callable=read_from_db_3.read_table

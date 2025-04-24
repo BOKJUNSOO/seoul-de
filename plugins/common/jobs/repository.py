@@ -252,7 +252,7 @@ class postgreSQL():
     def save_to_hourly_predict(self,**kwargs):
         print("--------save task is running--------")
         ti = kwargs['ti']
-        df = ti.xcom_pull(key='row_dataframe')
+        df = ti.xcom_pull(key='refine_dataframe',task_ids='refine_data')
 
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
@@ -264,7 +264,6 @@ class postgreSQL():
             dtype={
                 'row_number':Integer,
                 'name':String,
-                'line':String,
                 'service_date':DateTime,
                 'hour':Integer,
                 'predicted_get_on_d':Integer
