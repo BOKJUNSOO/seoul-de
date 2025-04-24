@@ -7,6 +7,7 @@ from common.jobs.transfer import subwaystation_montly_data
 from common.jobs.repository import postgreSQL
 import pendulum
 
+# del dag
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
