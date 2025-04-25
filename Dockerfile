@@ -10,5 +10,5 @@ ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 USER airflow
 RUN pip install --no-cache-dir scikit-learn
 
-#RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}"1
+#RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}"
 
