@@ -68,7 +68,7 @@ def event_data(**kwargs):
         'USE_FEE':'fee',
         'BOOL_FEE':'is_free',
         'LAT':'latitude',
-        'LOT':'longtitude',
+        'LOT':'longitude',
         'HMPG_ADDR':'homepage',
         'MAIN_IMG':'image_url',
         'ORG_LINK':'detail_url',
