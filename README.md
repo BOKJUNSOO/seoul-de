@@ -85,7 +85,6 @@ CREATE SCHEMA datawarehouse;
 - PostGIS 확장 활성화
 ```
 CREATE EXTENSION postgis;
-
 ```
 ---
 
