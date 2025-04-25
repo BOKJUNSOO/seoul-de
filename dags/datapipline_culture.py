@@ -8,7 +8,7 @@ from common.jobs.transfer import event_data
 from common.jobs.repository import postgreSQL
 from common.base.util.check_task import check_status
 import pendulum
-
+# hook
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의

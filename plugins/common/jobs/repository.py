@@ -174,7 +174,7 @@ class postgreSQL():
                 'fee':String,
                 'is_free':Boolean,
                 'latitude':Float,
-                'longtitude':Float,
+                'longitude':Float,
                 'hompage':String,
                 'image_url':String,
                 'target_user':String,
