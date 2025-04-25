@@ -59,6 +59,12 @@ pw: airflow
 docker exec -it <컨테이너명> /bin/bash
 ```
 ---
+- PostGIS 확장 설치
+```
+apt update
+apt install -y postgis postgresql-13-postgis-3
+```
+---
 - `airflow` 유저로 사용
 ```
 psql -U airflow
@@ -74,6 +80,11 @@ CREATE DATABASE seoulmoa;
 ```
 \c seoulmoa
 CREATE SCHEMA datawarehouse;
+```
+---
+- PostGIS 확장 활성화
+```
+CREATE EXTENSION postgis;
 ```
 ---
 
