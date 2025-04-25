@@ -18,7 +18,7 @@ test_db = postgreSQL("seoulmoa","datawarehouse","event_sync")
 with DAG (
     dag_id="datapipline_event_seoul_data",
     description="(1일단위) 문화행사 정보를 수집하는 DAG 입니다. 매일 00시에 DAG가 실행됩니다.",
-    schedule="0 0 * * *",
+    schedule="0 2 * * *",
     start_date=pendulum.datetime(2025,4,16, tz='Asia/Seoul'),
     catchup=False
 ) as dag:
