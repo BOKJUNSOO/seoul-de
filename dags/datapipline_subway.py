@@ -15,7 +15,7 @@ save_to_db = postgreSQL("seoulmoa","datawarehouse","subway_station")
 with DAG (
     dag_id='datapipline_subway_seoul_data',
     description="(2일단위) 지하철 역사 마스터 정보를 수집하는 DAG입니다. 격일 자정 00시에 실행됩니다.",
-    schedule='0 0 */2 * *',
+    schedule='0 3 */2 * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
     catchup=False
 ) as dag:
