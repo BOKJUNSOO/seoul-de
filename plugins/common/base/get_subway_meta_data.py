@@ -35,17 +35,20 @@ def get_data(api_key:str,**kwargs):
     for page in range(2,end_page+1):
         if page % 20 == 0:
             print(f'{page}/{end_page} 를 호출중입니다.')
-        try:
-            url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/subwayStationMaster/{page}/{page}/'
-            response = requests.get(url,timeout=5)
-            if response.status_code != 200:
-                print(f"[오류] 페이지 {page} - 상태 코드 {response.status_code}")
-            response = response.json()
-            data = response['subwayStationMaster']['row']
-            result_list.extend(data)
-        except requests.exceptions.RequestException as e:
-            print(f"[예외 발생] 페이지 {page} - {e}")
-            continue
+        for retry in range(1,4):
+            try:
+                url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/subwayStationMaster/{page}/{page}/'
+                response = requests.get(url,timeout=5)
+                if response.status_code == 200:
+                    response = response.json()
+                    data = response['subwayStationMaster']['row']
+                    result_list.extend(data)
+                    break
+                
+            except requests.exceptions.RequestException as e:
+                print(f"[예외 발생] 페이지 {page} - {e}")
+                print(f"10초후 재시도 합니다 재요청 횟수 : {retry/4}")
+                continue
     
     # json to table
     df = pd.DataFrame(result_list)
