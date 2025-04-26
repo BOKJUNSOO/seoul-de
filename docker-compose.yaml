@@ -30,17 +30,12 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
-    AIRFLOW_CONFIG: '/opt/airflow/airflow.cfg-custom'
+    AIRFLOW_CONFIG: '/opt/airflow/airflow.cfg'
   volumes:
     - ./dags:/opt/airflow/dags
     - ./plugins:/opt/airflow/plugins
-    - ./config/airflow.cfg:/opt/airflow/airflow.cfg-custom
+    - ./config/airflow.cfg:/opt/airflow/airflow.cfg
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
-  command: >
-      bash -c "
-        cp /opt/airflow/airflow.cfg-custom /opt/airflow/airflow.cfg &&
-        exec airflow webserver
-      "
   user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
   depends_on:
     &airflow-common-depends-on
