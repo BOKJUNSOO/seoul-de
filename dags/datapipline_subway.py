@@ -6,6 +6,7 @@ from common.base.get_subway_meta_data import get_data
 from common.jobs.transfer import subwaystation_data
 from common.jobs.repository import postgreSQL
 import pendulum
+from datetime import timedelta
 
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
@@ -17,7 +18,11 @@ with DAG (
     description="(2일단위) 지하철 역사 마스터 정보를 수집하는 DAG입니다. 격일 자정 00시에 실행됩니다.",
     schedule='0 3 */2 * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
-    catchup=False
+    catchup=False,
+    default_args={
+        'retries':3,
+        'retry_delay': timedelta(minutes=5)
+    }
 ) as dag:
     
     get_data_=PythonOperator(
