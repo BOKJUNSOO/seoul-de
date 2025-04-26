@@ -45,7 +45,7 @@ def get_data(api_key:str,**kwargs):
 
                 except requests.exceptions.RequestException as e:
                     print(f"[예외 발생] 페이지 {page} - {e}")
-                    print(f"10초후 재시도 합니다 재요청 횟수 : {retry/4}")
+                    print(f"10초후 재시도 합니다 재요청 횟수 : {retry}/4")
                     time.sleep(10)
                     continue
     df = pd.DataFrame(result_list)
