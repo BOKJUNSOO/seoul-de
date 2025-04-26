@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import time
 
 result_list=[]
 def get_data(api_key:str,**kwargs):
@@ -9,7 +10,6 @@ def get_data(api_key:str,**kwargs):
     airflow task instance에 해당 데이터를 pandas dataframe 형태로 push 한다.
     """
 
-    BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
     TARGET_YEAR_MONTH = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(months=1).strftime("%Y%m")
     print(TARGET_YEAR_MONTH + "(년월) BATCH 처리를 시작합니다.")
     print("서울시 지하철 월 + 시간대별 통계량 요청")
@@ -31,18 +31,22 @@ def get_data(api_key:str,**kwargs):
     for page in range(2,end_page + 1):
         if page % 20 == 0:
             print(f"{page}/{end_page} 를 호출중입니다.")
-        try:
-            url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayTime/{page}/{page}/{TARGET_YEAR_MONTH}/'
-            response = requests.get(url, timeout=5)
-            if response.status_code != 200:
-                print(f"[오류] 페이지 {page} - 상태 코드 {response.status_code}")
-            json_data = response.json()
-            data = json_data['CardSubwayTime']['row']
-            result_list.extend(data)
+        for retry in range(1,4):
+            try:
+                url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayTime/{page}/{page}/{TARGET_YEAR_MONTH}/'
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    json_data = response.json()
+                    data = json_data['CardSubwayTime']['row']
+                    result_list.extend(data)
+                    break
 
-        except requests.exceptions.RequestException as e:
-            print(f"[예외 발생] 페이지 {page} - {e}")
-            continue
+            except requests.exceptions.RequestException as e:
+                print(f"[예외 발생] 페이지 {page} - {e}")
+                print(f"10초후 재시도 합니다 재요청 횟수 : {retry/4}")
+                time.sleep(10)
+                continue
+
     df = pd.DataFrame(result_list)
     print(f'최종 수집 건수:{len(df)}')
     ti = kwargs['ti']

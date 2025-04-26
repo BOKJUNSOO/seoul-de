@@ -8,7 +8,9 @@ from common.jobs.transfer import event_data
 from common.jobs.repository import postgreSQL
 from common.base.util.check_task import check_status
 import pendulum
-# hook
+from datetime import timedelta
+
+# test hook1
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의
@@ -20,7 +22,12 @@ with DAG (
     description="(1일단위) 문화행사 정보를 수집하는 DAG 입니다. 매일 00시에 DAG가 실행됩니다.",
     schedule="0 2 * * *",
     start_date=pendulum.datetime(2025,4,16, tz='Asia/Seoul'),
-    catchup=False
+    catchup=False,
+    default_args={
+        'retries':3,
+        'retry_delay': timedelta(minutes=5)
+    }
+
 ) as dag:
     
     # [check_database]
@@ -88,7 +95,7 @@ with DAG (
                     s.fee,
                     s.is_free,
                     s.latitude,
-                    s.longtitude,
+                    s.longitude,
                     s.homepage,
                     s.image_url,
                     s.detail_url,
@@ -111,7 +118,7 @@ with DAG (
                     fee,
                     is_free,
                     latitude,
-                    longtitude,
+                    longitude,
                     homepage,
                     image_url,
                     detail_url,
@@ -130,7 +137,7 @@ with DAG (
                 fee,
                 is_free,
                 latitude,
-                longtitude,
+                longitude,
                 homepage,
                 image_url,
                 detail_url,
@@ -148,7 +155,7 @@ with DAG (
                 fee,
                 is_free,
                 latitude,
-                longtitude,
+                longitude,
                 homepage,
                 image_url,
                 detail_url,

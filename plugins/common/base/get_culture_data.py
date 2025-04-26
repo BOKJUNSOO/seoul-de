@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 from datetime import datetime
 from bs4 import BeautifulSoup
+import time
 
 def parse_html(html_page_url)->str:
     '''
@@ -72,39 +73,27 @@ def get_data(api_key:str,**kwargs):
     for page in range(2, end_page+1):
         if page % 20 == 0:
             print(f"{page}/{end_page} 를 호출중입니다.")
-        try:
-            url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/{page}/{page}"
-            response = requests.get(url, timeout=5)
-            if response.status_code != 200:
-                print(f"[오류] 페이지 {page} - 상태 코드 {response.status_code}")
-                break
-            response = response.json()
-            data = response['culturalEventInfo']['row']
-            # HTML PARSING
-            address = data[0]["HMPG_ADDR"]
-            description_str = parse_html(address)
-            data[0]['ALT'] = description_str
-            if description_str == '정보없음':
-                print(f"{page} 페이지의 상세정보를 Parsing 하는데 실패했습니다.")
-            result_list.extend(data)
+        for retry in range(1,4):
+            try:
+                url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/{page}/{page}"
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    response = response.json()
+                    data = response['culturalEventInfo']['row']
+                    # HTML PARSING
+                    address = data[0]["HMPG_ADDR"]
+                    description_str = parse_html(address)
+                    data[0]['ALT'] = description_str
+                    if description_str == '정보없음':
+                        print(f"{page} 페이지의 상세정보를 Parsing 하는데 실패했습니다.")
+                    result_list.extend(data)
+                    break
 
-            # # 유효 일자 필터링
-            # start_date = data[0]['STRTDATE']
-            # end_date = data[0]['END_DATE']
-
-            # # 아직 행사가 시작되지 않은 경우는 모두 수집 대상
-            # if start_date >= BATCH_DATE:
-            #     result_list.extend(data)
-            #     continue
-            
-            # # 행사가 진행중인 경우
-            # if (start_date <= BATCH_DATE)and(end_date >= BATCH_DATE):
-            #     result_list.extend(data)
-            #     continue
-
-        except requests.exceptions.RequestException as e:
-            print(f"[예외 발생] 페이지 {page} - {e}")
-            continue
+            except requests.exceptions.RequestException as e:
+                print(f"[예외 발생] 페이지 {page} - {e}")
+                print(f"10초후 재시도 합니다 재요청 횟수 : {retry/4}")
+                time.sleep(10)
+                continue
 
     # json to table
     df = pd.DataFrame(result_list)

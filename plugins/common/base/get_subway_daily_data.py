@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-
+import time
 result_list=[]
 def get_data(api_key,**kwargs):
     """
@@ -28,18 +28,22 @@ def get_data(api_key,**kwargs):
     for page in range(2,end_page +1):
         if page % 20 ==0:
             print(f"{page}/{end_page} 를 호출중입니다.")
-        try:
-            url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayStatsNew/{page}/{page}/{BATCH_DATE}/'
-            response = requests.get(url)
-            if response.status_code != 200:
-                print(f"[오류] 페이지 {page} - 상태 코드 {response.status_code}")
-            
-            json_data = response.json()
-            data = json_data['CardSubwayStatsNew']['row']
-            result_list.extend(data)
-        except requests.exceptions.RequestException as e:
-            print(f"[예외 발생] 페이지 {page} - {e}")
-            continue
+        for retry in range(1,4):
+            try:
+                url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayStatsNew/{page}/{page}/{BATCH_DATE}/'
+                response = requests.get(url)
+                if response.status_code == 200:
+                    json_data = response.json()
+                    data = json_data['CardSubwayStatsNew']['row']
+                    result_list.extend(data)
+                    break
+
+            except requests.exceptions.RequestException as e:
+                print(f"[예외 발생] 페이지 {page} - {e}")
+                print(f"10초후 재시도 합니다 재요청 횟수 : {retry/4}")
+                time.sleep(10)
+                continue
+
     df = pd.DataFrame(result_list)
     print(f'최종 수집 건수:{len(df)}')
     
