@@ -22,11 +22,13 @@ pw: airflow
 ```
 
 - 키값 설정
+`OPEN AI 와 공공데이터 키를 발급 받으셔야 합니다!`
 
 ```
 1. 접속후 상단네비게이션 바에서 `Admin` 선택
 2. `Variable` 접속후 `+` 로 키값 설정
 3. `key` 란에 꼭! `seoul_api_key`라고 작성, `Val` 란에 발급받은 키 작성
+4. `key`를 `OPEN_AI_KEY` 라고 작성, `Val` 란에 발급받은 키 작성
 ```
 ---
 #### 2. connection 설정
