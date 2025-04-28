@@ -8,10 +8,19 @@ from datetime import datetime
 
 def event_data(type_,**kwargs):
     """
-    Event 테이블을 생성하는 airflow task 함수
+    공공데이터 API 호출이 끝난 이후 row dataframe을 정제하는 함수 refine_data_* 테스크에 이용
+    flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
+    **중요** : 공공 API 에 LOT 과 LAT 이 반대로 표기. 이에 맞춰 정제한다.
 
-    airflow task instance에서 dataframe을 pull 하여 정제한다.
-    schema에 맞게(컬럼명조정) 정제한 테이블을 postgreSQL에 저장한다.
+    args:
+        type_ : "init" or "sync"
+            - init : event 테이블이 없는 경우에 인자로 전달된 테스크가 실행된다. (refine_data)
+            - sync : event 테이블이 있는 경우에 인자로 전달된 테스크가 실행된다. (refine_data_s)
+        pull key : row_dataframe
+            - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
+            - 이는 추후 check_event_description_* task에 영향
+    return : 
+        push key : refine_dataframe
     """
     print("start refine task!")
     ti = kwargs['ti']
@@ -31,8 +40,6 @@ def event_data(type_,**kwargs):
     # refine column
     condtion = df['CODENAME'].str.contains("축제", na = False)
     df.loc[condtion,'CODENAME'] = "축제"
-
-    df = df.apply(corret_lat_lot, axis=1)
     
     # follow schema
     if type_ == "sync":
@@ -83,11 +90,21 @@ def event_data(type_,**kwargs):
 
 def check_event_description(type_,**kwargs) -> dict:
     """
-    처음 event 테이블을 구성 및 event_sync에서 
-    airflow task의 refine_dataframe을 인자로 받는다.
-    
-    description의 길이가 특정 조건을 만족하지 못하고, 진행 + 진행할 행사 정보를 추출한다.
-    row_number과 hompage 링크를 키벨류쌍으로 기록하여 딕셔너리로 리턴한다.
+    event descrition을 확인하고 추가로 필요한 homepage + row를 키벨류쌍으로 리턴하는 함수
+
+    args:
+        type_:
+            init : 처음 파싱해온 description 의 타당도 여부를 결정하고 진행중인 이벤트를 기준으로 dictionary 리턴
+            sync : refine_dataframe 을 새롭게 정의하고(어제는 존재하지 않던 row), descrition을 요청할 dictionary 리턴
+        pull key : 
+            -refine_dataframe (both)
+                - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
+                - 이는 추후 check_event_description_* task에 영향
+            -event (only sync.)
+                - event table과 신규 테이블 비교 (read event table task가 있을 경우만 사용)
+    return : 
+        push key : refine_dataframe (only sync.)
+        push key : research_dict (both)
     """
     ti = kwargs["ti"]
     df = ti.xcom_pull(key='refine_dataframe')
@@ -104,14 +121,15 @@ def check_event_description(type_,**kwargs) -> dict:
         # 정보없는 페이지 필터링
         condition3 = df['event_description'] != '정보없음'
         df = df[condition3]
+    
     if type_ == "sync":
         # read 한 event 테이블과 비교했을때 hompage 기준으로 새롭게 존재하는 row만 찾아서 df로 반환하는 함수
         event_df = ti.xcom_pull(key="event")
         event_df.info()
-        print("debugging")
         df.info()
         df = check_diff(df,event_df)
-        # event init 모드와 다르게 덮어써서 사용한다.
+        # 기존의 refine_dataframe을 사용하지 않는다.
+        # init 모드의 경우 해당 키값을 사용해야 한다.
         ti.xcom_push(key="refine_dataframe",value=df)
 
     target_dict = {}
@@ -123,10 +141,14 @@ def check_event_description(type_,**kwargs) -> dict:
 
 def re_search_function(**kwargs)->dict:
     """
-    OpenAI에게 요약을 요청할 html 문서를 파싱해오는 함수
-    rownumber와 homepage 딕셔너리를 pull 하여 해당 딕셔너리에 파싱해온 HTML을 할당한다.
+    requesets를 통해 AI에게 요약을 부탁할 문자열을 파싱해오는 함수
+    culture content의 span에 존재하는 문자열, alt에 붙어있는 설명을 모두 가져온다.
 
-    AI에게 전달할 HTML문서를 키벨류쌍으로 저장한 딕셔너리를 push한다.
+    args:
+        pull key : 
+            - research_dict : check_event_descrition 함수의 리턴값, 필터링된 행사의 홈페이지, row넘버
+    return : 
+        push key : html_dict - ai에게 요약을 요청할 html 문서값과 로우넘버의 벨류쌍
     """
     ti = kwargs['ti']
     research_dict = ti.xcom_pull(key="research_dict")
@@ -144,6 +166,13 @@ def re_search_function(**kwargs)->dict:
                     spans = div.find_all('span')
                     for span in spans:
                         answer+=span.get_text()
+
+                    # alt 속성 추출
+                    tags_with_alt = div.find_all(attrs={"alt": True})  # alt 속성이 있는 모든 태그
+                    for tag in tags_with_alt:
+                        alt_text = tag.get('alt')
+                        if alt_text:  # alt 값이 존재할 때만 추가
+                            answer += alt_text
                 parsing_dict[event_id] = answer
                 break
             except requests.exceptions.RequestException as e:
@@ -151,16 +180,24 @@ def re_search_function(**kwargs)->dict:
                 time.sleep(10)
                 continue
     print("xcom에서 ai에게 요약 요청할 정보를 확인할 수 있습니다.")
+    print("ai에게 요약 요청할 row의 갯수 :",len(parsing_dict))
     ti.xcom_push(key='html_dict',value=parsing_dict)
 
 
 def make_summary_ai(OPEN_AI_KEY,**kwargs):
     """
-    OPEN AI 키를 필요로한다.
-    Open ai 에게 요약요청을 하는 함수 파싱에 실패한 페이지의 HTML 문서를 전달한다.
-    
-    전달한 문서에 대한 응답을 받아 row_number에 맞게 값을 저장하고, 리턴하는 함수
-    기존에 메모리에 존재하는 event 테이블의 값을 대치시킨다.
+    requesets를 통해 AI에게 요약을 부탁할 문자열을 파싱해오는 함수
+    culture content의 span에 존재하는 문자열, alt에 붙어있는 설명을 모두 가져온다.
+
+    args:
+        OPEN_AI_KEY : Open AI 키
+        pull key : 
+            - html_dict : re_search_function 함수의 리턴값, 행사의 홈페이지의 파싱정보와 row넘버
+            - refine_dataframe:
+                init 단계에서는 기본 event 테이블
+                sync 단계에서는 기존에 존재하지 않던 row들의 table
+    return : 
+        push key : to_save_data - 최종 저장소에 저장하게 되는 인스턴스
     """
     # gpt 인스턴스 생성
     openai_client = openai.OpenAI(api_key=OPEN_AI_KEY)
@@ -171,8 +208,8 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
     for idx, text in result_dict.items():   
         prompt = f"""
         다음 텍스트는 html 페이지에서 특정 태그를 파싱해온 결과야.
-        - 새로운 정보를 추가하지 말고 요약해줘.
-        - 요약결과는 300자 내외를 지켜줘.
+        - 새로운 정보를 추가하지 말고 있는 정보를 정리해줘.
+        - 밝은 느낌으로 내용을 소개해줘.
         - 꼭 경어체를 사용해줘.
         
         {text}
@@ -182,7 +219,7 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
                 response = openai_client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "너는 텍스트 요약 전문가야"},
+                        {"role": "system", "content": "너는 텍스트 정리 전문가야"},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.0,
