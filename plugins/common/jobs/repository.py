@@ -67,13 +67,13 @@ class postgreSQL():
         if table not in tables:
             print(f"{table}이 존재하지 않습니다.")
             ti.xcom_push(key="key",value="save_to_event_")
-            next_task="make_event_data_"
+            next_task="make_event_table_"
             
             return next_task
         else:
             print(f"{table}이 존재합니다. sync table을 생성합니다.")
             ti.xcom_push(key="key",value="save_to_sync_")
-            next_task="make_sync_data_"
+            next_task="make_sync_table_"
             return next_task
 
     # getter
@@ -155,7 +155,7 @@ class postgreSQL():
     def save_to_event_table(self,**kwargs):
         print("--------save task is running--------")
         ti = kwargs['ti']
-        df = ti.xcom_pull(key='refine_dataframe')
+        df = ti.xcom_pull(key='to_save_data')
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
             name=self.table_name,
