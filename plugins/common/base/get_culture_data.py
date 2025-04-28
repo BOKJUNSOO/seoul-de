@@ -1,6 +1,5 @@
 import requests
 import pandas as pd
-from datetime import datetime
 from bs4 import BeautifulSoup
 import time
 
@@ -67,7 +66,59 @@ def parse_html(html_page_url,page)->str:
     # 둘다 None 타입인 경우
     else:
         return "정보없음"
+sync_table=[]
+def make_sync_table(api_key:str,**kwargs):
+    """
+    전달받은 api_key를 이용해 데이터를 수집한다.
+    batch 잡이 주로 이루어지며 이 함수는 HTML TAG를 파싱하지 않고 테이블만 생성하는 함수
+    """
+    BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
+    BATCH_DATE = "2025-04-28" # test 용 하드코딩
+    print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
+    print("서울 문화행사 정보 SYNC 테이블을 생성합니다. 이 데이터는 정보 갱신만을 위해 사용됩니다.")
+    try:
+        url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/1/1"
+        first_response = requests.get(url, timeout=5)
+        first_response.raise_for_status()
 
+        json_data = first_response.json()
+        sync_table.extend(json_data['culturalEventInfo']['row'])
+        
+        # 요청page수
+        end_page = json_data['culturalEventInfo']['list_total_count']
+        print(f"전체 데이터 건수: {end_page}")
+        print(f"수집 데이터 건수: {end_page}")
+    except requests.exceptions.RequestException as e:
+        print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")
+    
+    # 페이지 수 만큼 api 요청
+    for page in range(2, end_page+1):
+        if page % 20 == 0:
+            print(f"{page}/{end_page} 를 호출중입니다.")
+        for retry in range(1,4):
+            try:
+                url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/{page}/{page}"
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+
+                    json_data = response.json()
+                    sync_table.extend(json_data['culturalEventInfo']['row'])
+                    break
+
+            except requests.exceptions.RequestException as e:
+                print(f"[예외 발생] 페이지 {page} - {e}")
+                print(f"10초후 재시도 합니다 재요청 횟수 : {retry}/4")
+                time.sleep(10)
+                continue
+
+    # json to table
+    df = pd.DataFrame(sync_table)
+    print(f"최종 수집 건수: {len(df)}")
+    print(df)
+    # task instance
+    ti = kwargs['ti']
+    ti.xcom_push(key='row_dataframe', value=df)
+    
 result_list = []
 def get_data(api_key:str,**kwargs):
     """
@@ -76,8 +127,10 @@ def get_data(api_key:str,**kwargs):
     파싱한 값을 airflow task instance에 push한다.
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
+    BATCH_DATE = "2025-04-28" # test 용 하드코딩
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
     print("서울 문화행사 정보 요청")
+    
 
     try:
         url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/1/1"
