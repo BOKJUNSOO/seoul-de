@@ -4,7 +4,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import time
 
-def parse_html(html_page_url)->str:
+def parse_html(html_page_url,page)->str:
     '''
     div 에서 행사정보를 paring 해서 리턴하는 함수
 
@@ -32,31 +32,41 @@ def parse_html(html_page_url)->str:
         if img_tag and img_tag.has_attr('alt'):
             alt_text2 = img_tag['alt']
     
-    # 둘다 내용이 존재한다면
+    # 둘다 내용이 존재하고
     if alt_text1 != None and alt_text2 != None:
-        if len(alt_text1) >= len(alt_text2):
-            alt_text = alt_text1
-            print("[type1] alt_text1 채택:",alt_text)
-        elif len(alt_text1) < len(alt_text2):
-            alt_text = alt_text2
-            print("[type1] alt_text2 채택:",alt_text)
-        return alt_text
+        # 공백이 아닌 문자열이 둘중에 하나라도 있는경우
+        if len(alt_text1.strip())>0 or len(alt_text2.strip()) >0:
+            # 더 긴 내용을 선택
+            if len(alt_text1.strip()) >= len(alt_text2.strip()):
+                alt_text = alt_text1
+            elif len(alt_text1.strip()) < len(alt_text2.strip()):
+                alt_text = alt_text2
+            return alt_text
     
     # 둘중 내용이 존재하지 않는게 있다면
     if alt_text1 != None or alt_text2 != None:
-        if alt_text1 != None:
-            alt_text = alt_text2
-            print("[type2] 존재하는 내용으로 가져왔어요:",alt_text)
-        else:
-            alt_text = alt_text1
-            print("[type2] 존재하는 내용으로 가져왔어요:",alt_text)
-        return alt_text
-    
-    # 둘다 없다면
-    if alt_text1 == None and alt_text2 == None:
-        print("해당 페이지의 상세정보가 존재하지 않습니다.")
-        return "정보없음"
+        # 존재하는 내용이면서
+        if alt_text1 != None: # alt_text2는 무조건 None이 된다(위에서 필터링)
+            # 공백이 아닌 문자열을 선택
+            if len(alt_text1.strip()) > 0:
+                alt_text = alt_text1
+                print(f"[type2] {page} 존재하는 내용으로 가져왔어요:",alt_text)
+                return alt_text
+            # alt_text1 == None이 아니고 alt_text1의 길이가 0인경우(공백)
+            else:
+                return "정보없음"
 
+        elif alt_text2 != None: # alt_text1은 무조건 None인 경우
+            if len(alt_text2.strip()) > 0:
+                alt_text = alt_text2
+                print(f"[type2] {page} 존재하는 내용으로 가져왔어요:",alt_text)
+                return alt_text
+            # alt_text2 == None이 아니고 alt_text2의 길이가 0인경우(공백)
+            else:
+                return "정보없음"
+    # 둘다 None 타입인 경우
+    else:
+        return "정보없음"
 
 result_list = []
 def get_data(api_key:str,**kwargs):
@@ -77,7 +87,7 @@ def get_data(api_key:str,**kwargs):
         json_data = first_response.json()
         # HTML PARSING
         address = json_data['culturalEventInfo']['row'][0]['HMPG_ADDR']
-        description_str = parse_html(address)
+        description_str = parse_html(address,1)
 
         # dictionary 객체 참조하고 키값에 할당
         json_data['culturalEventInfo']['row'][0]['ALT'] = description_str
@@ -87,12 +97,12 @@ def get_data(api_key:str,**kwargs):
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
         print(f"전체 데이터 건수: {end_page}")
-
+        print(f"수집 데이터 건수: {end_page}")
     except requests.exceptions.RequestException as e:
         print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")
     
     # 페이지 수 만큼 api 요청
-    for page in range(2, end_page+1):
+    for page in range(1, end_page+1):
         if page % 20 == 0:
             print(f"{page}/{end_page} 를 호출중입니다.")
         for retry in range(1,4):
@@ -104,10 +114,10 @@ def get_data(api_key:str,**kwargs):
                     data = response['culturalEventInfo']['row']
                     # HTML PARSING
                     address = data[0]["HMPG_ADDR"]
-                    description_str = parse_html(address)
+                    description_str = parse_html(address,page)
                     data[0]['ALT'] = description_str
                     if description_str == '정보없음':
-                        print(f"{page} 페이지의 상세정보를 Parsing 하는데 실패했습니다.")
+                        print(f"[type3] {page} 페이지의 상세정보를 Parsing 하는데 실패했습니다. event_sync 테이블 확인요망.")
                     result_list.extend(data)
                     break
 

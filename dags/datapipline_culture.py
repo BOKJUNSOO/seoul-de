@@ -12,7 +12,7 @@ from datetime import timedelta
 
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
-# 데이터베이스, 스키마, 테이블명 정의
+# 데이터베이스, 스키마, 테이블명 정의(main table and sub table for compare)
 target_db = postgreSQL("seoulmoa","datawarehouse","event")
 test_db = postgreSQL("seoulmoa","datawarehouse","event_sync")
 
