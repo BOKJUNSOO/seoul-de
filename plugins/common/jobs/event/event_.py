@@ -125,8 +125,7 @@ def check_event_description(type_,**kwargs) -> dict:
     if type_ == "sync":
         # read 한 event 테이블과 비교했을때 hompage 기준으로 새롭게 존재하는 row만 찾아서 df로 반환하는 함수
         event_df = ti.xcom_pull(key="event")
-        event_df.info()
-        df.info()
+        print("debugging outside:",event_df.info())
         df = check_diff(df,event_df)
         # 기존의 refine_dataframe을 사용하지 않는다.
         # init 모드의 경우 해당 키값을 사용해야 한다.
@@ -227,7 +226,7 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
                 )
                 answer = response.choices[0].message.content
                 result_dict[idx] = answer
-                print(f"AI 요약 결과입니다:{answer}")
+                print(f"AI 요약 결과입니다 {idx}:{answer}")
                 break
             except Exception as e:
                 print(f"OPEN AI 요청 에러 발생:{e} 10초뒤 재시도 합니다.{retry}/4")
@@ -256,8 +255,6 @@ def check_diff(df,event_df)->pd.DataFrame:
     return:
         dataframe
     """
-    existing_homepages=set(event_df['homepage'])
-    
-    new_rows = df[~df['homepage'].isin(existing_homepages)]
-    new_rows.info()
+    mask = ~df['homepage'].isin(event_df['homepage'])
+    new_rows = df[mask]
     return new_rows
