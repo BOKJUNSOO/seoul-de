@@ -5,10 +5,15 @@ import time
 
 def parse_html(html_page_url,page)->str:
     '''
-    div 에서 행사정보를 paring 해서 리턴하는 함수
+    div 에서 행사정보(event_description)을 paring 해서 리턴하는 파이썬 함수
+    culture-content 클래스의 alt 를 우선적으로 파싱하고, img-box 클래스의 alt를 두번째 순위로 파싱한다.
 
-    culture-content 클래스의 alt 를 우선적으로 파싱하고,
-    img-box 클래스의 alt를 두번째 순위로 파싱한다.
+    args:
+        html_page_url : api 요청 과정에서 homepage url을 파싱
+        page : 로그확인용 api 요청 page
+
+    return:
+        event_description : str
     '''
 
     response = requests.get(html_page_url)
@@ -69,8 +74,16 @@ def parse_html(html_page_url,page)->str:
 sync_table=[]
 def make_sync_table(api_key:str,**kwargs):
     """
-    전달받은 api_key를 이용해 데이터를 수집한다.
-    batch 잡이 주로 이루어지며 이 함수는 HTML TAG를 파싱하지 않고 테이블만 생성하는 함수
+    event_sync table을 생성한다.
+    event table과 비교했을때, event table에 존재하지 않는 row를 추가할 수 있다.
+
+    args:
+        api_key : 서울 공공데이터 api키
+
+    push key:
+        row_dataframe
+        - sync 테이블은 처음 호출로 생성시 event_description이 없다.
+        - 단순히 호출된 데이터 이므로 row_dataframe으로 정의한다.
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
@@ -121,9 +134,16 @@ def make_sync_table(api_key:str,**kwargs):
 result_list = []
 def get_data(api_key:str,**kwargs):
     """
-    전달받은 api_key 를 이용해 문화데이터를 수집하고 테이블을 생성하는 함수
+    event table을 생성한다.
+    서비스의 시작지점.
 
-    파싱한 값을 airflow task instance에 push한다.
+    args:
+        api_key : 서울 공공데이터 api키
+
+    push key:
+        row_dataframe
+        - parse_html 함수 호출로 event 테이블은 sync 테이블과 다르게 event_description 이 존재한다.
+        - 단순히 호출된 데이터 이므로 row_dataframe으로 정의한다.
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
