@@ -10,7 +10,6 @@ from common.base.util.check_task import check_status
 import pendulum
 from datetime import timedelta
 
-# test hook1
 # batch 처리 api key
 api_key = Variable.get("seoul_api_key")
 # 데이터베이스, 스키마, 테이블명 정의

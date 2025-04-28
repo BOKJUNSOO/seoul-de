@@ -1,4 +1,5 @@
 import pandas as pd
+from common.base.util.helper import corret_lat_lot
 # 원하는 형태로 테이블을 정제하는 모듈
 # 사전에 정의한 스키마로 컬러머명을 변경
 
@@ -53,6 +54,8 @@ def event_data(**kwargs):
     condtion = df['CODENAME'].str.contains("축제", na = False)
     df.loc[condtion,'CODENAME'] = "축제"
 
+    df = df.apply(corret_lat_lot, axis=1)
+    
     # follow schema
     columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
     df = df[columns]
