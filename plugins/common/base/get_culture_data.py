@@ -15,24 +15,42 @@ def parse_html(html_page_url)->str:
     response = requests.get(html_page_url)
     soup = BeautifulSoup(response.text,'html.parser')
     img_tag = None
-    alt_text = None
+    alt_text1 = None
+    alt_text2 = None
 
     # culture-content의 내용확인
     culture_div = soup.find('div', class_='culture-content')
     if culture_div:
         img_tag = culture_div.find('img')
         if img_tag and img_tag.has_attr('alt'):
-            alt_text = img_tag['alt']
+            alt_text1 = img_tag['alt']
 
-    # culture-content의 내용이 없다면 다른 이미지 class 확인
-    if not alt_text:
-        img_box = soup.find('div', class_='img-box')
-        if img_box:
-            img_tag = img_box.find('img')
-            if img_tag and img_tag.has_attr('alt'):
-                alt_text = img_tag['alt']
-
-    return alt_text if alt_text else '정보 없음'
+    # img-box 내용 확인
+    img_box = soup.find('div', class_='img-box')
+    if img_box:
+        img_tag = img_box.find('img')
+        if img_tag and img_tag.has_attr('alt'):
+            alt_text2 = img_tag['alt']
+    
+    # 둘다 내용이 존재한다면
+    if alt_text1 != None and alt_text2 != None:
+        if alt_text1 >= alt_text2:
+            alt_text = alt_text1
+        else:
+            alt_text = alt_text2
+        return alt_text
+    
+    # 둘중 내용이 존재하지 않는게 있다면
+    if alt_text1 != None or alt_text2 != None:
+        if alt_text1 != None:
+            alt_text = alt_text2
+        else:
+            alt_text = alt_text1
+        return alt_text
+    
+    # 둘다 없다면
+    if alt_text1 == None and alt_text2 == None:
+        return "정보없음"
 
 
 result_list = []
