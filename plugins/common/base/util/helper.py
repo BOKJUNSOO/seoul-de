@@ -5,5 +5,5 @@ def corret_lat_lot(row):
 
     if lat > lot:
         row['LAT'], row['LOT'] = lot, lat
-    print("lat과 lot의 값을 수정합니다")
+        print("lat과 lot의 값을 수정합니다")
     return row
