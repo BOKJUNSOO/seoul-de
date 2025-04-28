@@ -34,22 +34,27 @@ def parse_html(html_page_url)->str:
     
     # 둘다 내용이 존재한다면
     if alt_text1 != None and alt_text2 != None:
-        if alt_text1 >= alt_text2:
+        if len(alt_text1) >= len(alt_text2):
             alt_text = alt_text1
-        else:
+            print("[type1] alt_text1 채택:",alt_text)
+        elif len(alt_text1) < len(alt_text2):
             alt_text = alt_text2
+            print("[type1] alt_text2 채택:",alt_text)
         return alt_text
     
     # 둘중 내용이 존재하지 않는게 있다면
     if alt_text1 != None or alt_text2 != None:
         if alt_text1 != None:
             alt_text = alt_text2
+            print("[type2] 존재하는 내용으로 가져왔어요:",alt_text)
         else:
             alt_text = alt_text1
+            print("[type2] 존재하는 내용으로 가져왔어요:",alt_text)
         return alt_text
     
     # 둘다 없다면
     if alt_text1 == None and alt_text2 == None:
+        print("해당 페이지의 상세정보가 존재하지 않습니다.")
         return "정보없음"
 
 
@@ -81,7 +86,6 @@ def get_data(api_key:str,**kwargs):
         
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
-
         print(f"전체 데이터 건수: {end_page}")
 
     except requests.exceptions.RequestException as e:
