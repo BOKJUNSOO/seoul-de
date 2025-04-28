@@ -16,3 +16,4 @@ plugins/common/**/__pycache__/
 dags/MLpipline_subway_prev_month_hour.py
 dags/test_dags.py
 test_dags.py
+plugins/common/base/get_subway_montly_data.py
