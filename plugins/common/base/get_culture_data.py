@@ -73,7 +73,6 @@ def make_sync_table(api_key:str,**kwargs):
     batch 잡이 주로 이루어지며 이 함수는 HTML TAG를 파싱하지 않고 테이블만 생성하는 함수
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
-    BATCH_DATE = "2025-04-28" # test 용 하드코딩
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
     print("서울 문화행사 정보 SYNC 테이블을 생성합니다. 이 데이터는 정보 갱신만을 위해 사용됩니다.")
     try:
@@ -127,7 +126,6 @@ def get_data(api_key:str,**kwargs):
     파싱한 값을 airflow task instance에 push한다.
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
-    BATCH_DATE = "2025-04-28" # test 용 하드코딩
     print(BATCH_DATE +"일자의 BATCH 처리를 시작합니다.")
     print("서울 문화행사 정보 요청")
     
