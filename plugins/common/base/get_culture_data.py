@@ -102,7 +102,7 @@ def get_data(api_key:str,**kwargs):
         print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")
     
     # 페이지 수 만큼 api 요청
-    for page in range(1, end_page+1):
+    for page in range(2, end_page+1):
         if page % 20 == 0:
             print(f"{page}/{end_page} 를 호출중입니다.")
         for retry in range(1,4):
