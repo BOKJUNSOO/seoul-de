@@ -64,14 +64,17 @@ class postgreSQL():
         tables = [row[0] for row in cur.fetchall()]
         print("datawarehouse 스키마의 테이블들:", tables)
         
+        another_="event_sync"
+        # 검사한 테이블(evnet 테이블)이 존재하지 않는 경우
         if table not in tables:
             print(f"{table}이 존재하지 않습니다.")
+            print(f"{table}을 생성합니다..")
             ti.xcom_push(key="key",value="save_to_event_")
-            next_task="make_event_table_"
-            
+            next_task="make_event_table"
             return next_task
         else:
-            print(f"{table}이 존재합니다. sync table을 생성합니다.")
+            print(f"{table}이 존재합니다.")
+            print(f"{another_}을 생성합니다..")
             ti.xcom_push(key="key",value="save_to_sync_")
             next_task="make_sync_table_"
             return next_task

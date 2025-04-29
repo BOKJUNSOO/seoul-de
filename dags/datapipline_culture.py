@@ -27,7 +27,7 @@ with DAG (
     # [check_database]
     check_data_=BranchPythonOperator(
         task_id='check_data_',
-        python_callable=postgreSQL("seoulmoa","datawarehouse","event_sync").check_table
+        python_callable=postgreSQL("seoulmoa","datawarehouse","event").check_table
     )
     
     # [make event table task]
