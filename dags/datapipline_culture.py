@@ -10,14 +10,6 @@ from common.base.util.check_task import check_status, check_daily
 import pendulum
 from datetime import timedelta
 
-# batch 처리 api key
-# check hook flag true
-api_key = Variable.get("seoul_api_key")
-OPEN_AI_KEY=Variable.get("OPEN_AI_KEY_secret")
-
-# 데이터베이스, 스키마, 테이블명 정의(main table and sub table for compare)
-target_db = postgreSQL("seoulmoa","datawarehouse","event")
-test_db = postgreSQL("seoulmoa","datawarehouse","event_sync")
 
 with DAG (
     dag_id="datapipline_event_seoul_data",
@@ -35,21 +27,21 @@ with DAG (
     # [check_database]
     check_data_=BranchPythonOperator(
         task_id='check_data_',
-        python_callable=target_db.check_table
+        python_callable=postgreSQL("seoulmoa","datawarehouse","event_sync").check_table
     )
     
     # [make event table task]
     make_event_table_=PythonOperator(
         task_id="make_event_table_",
         python_callable=get_data,
-        op_args=[api_key]
+        op_args=[Variable.get("seoul_api_key")]
     )
     
     # [make sync table task]
     make_sync_table_=PythonOperator(
         task_id="make_sync_table_",
         python_callable=make_sync_table,
-        op_args=[api_key]
+        op_args=[Variable.get("seoul_api_key")]
     )
 
     # [init or daily]
@@ -78,7 +70,7 @@ with DAG (
     # compare table
     read_event_table_=PythonOperator(
         task_id="read_event_table",
-        python_callable=target_db.read_table
+        python_callable=postgreSQL("seoulmoa","datawarehouse","event").read_table
     )
 
     # [check status]
@@ -111,19 +103,19 @@ with DAG (
     make_summary_ai_=PythonOperator(
         task_id='make_summary_ai_',
         python_callable=make_summary_ai,
-        op_args=[OPEN_AI_KEY]
+        op_args=[Variable.get("OPEN_AI_KEY_secret")]
     )
 
     # [save to event table]
     save_to_event_=PythonOperator(
         task_id="save_to_event_",
-        python_callable=target_db.save_to_event_table
+        python_callable=postgreSQL("seoulmoa","datawarehouse","event").save_to_event_table
     )
     
     # [save to sync table]
     save_to_sync_=PythonOperator(
         task_id="save_to_sync_",
-        python_callable=test_db.save_to_event_table
+        python_callable=postgreSQL("seoulmoa","datawarehouse","event_sync").save_to_event_table
     )
 
     # [insert_task]
