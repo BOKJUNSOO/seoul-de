@@ -103,20 +103,18 @@ def check_event_description(type_,**kwargs) -> dict:
         df = df[condition3]
         target_df = df
         for _,row in target_df.iterrows():
-            target_dict[row['event_id']] = row['homepage'] # 다시 저장할 내용 정리
-        ti.xcom_push(key="research_dict",value=target_dict) # refine_dataframe을 그대로 이용한다.
+            target_dict[row['event_id']] = row['homepage'] 
+        ti.xcom_push(key="research_dict",value=target_dict)
     
     if type_ == "sync":
         event_df = ti.xcom_pull(key="event")
         print("compare event with table")
-        # read 한 event 테이블과 비교했을때 hompage 기준으로 새롭게 존재하는 row만 찾아서 df로 반환하는 함수
-        new_parsing_row = check_diff(df,event_df) # 새롭게 description을 생성할 df
-        # 기존의 refine_dataframe을 사용하지 않는다.
-        target_df = new_parsing_row
-        for _,row in target_df.iterrows():
+        new_parsing_row = check_diff(df,event_df)
+        
+        # refine_dataframe에 해당 요약 요청 row 만 추가한다
+        for _,row in new_parsing_row.iterrows():
             target_dict[row['event_id']] = row['homepage']
         
-        # init 모드의 경우 해당 키값을 사용해야 한다.
         print("summary_ai 이후 dataframe과 비교하세요. :",len(df))
         ti.xcom_push(key="research_dict",value=target_dict)
 

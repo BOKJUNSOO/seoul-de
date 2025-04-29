@@ -1,10 +1,11 @@
 import pandas as pd
+from common.base.util.helper import refine_subway_name_data
 # 원하는 형태로 테이블을 정제하는 모듈
 # 사전에 정의한 스키마로 컬러머명을 변경
 
 def subwaystation_data(**kwargs):
     """
-    Subway 테이블을 생성하는 airflow task 함수
+    subway_station 테이블을 생성하는 airflow task 함수
 
     airflow task instance에서 dataframe을 pull 하여 정제한다.
     schema에 맞게(컬럼명 조정) 정제한 테이블을 task instance에 push 한다..
@@ -21,16 +22,18 @@ def subwaystation_data(**kwargs):
         'LAT':'latitude',
         'LOT':'longitude'
     })
+    # name 정제
+    df = refine_subway_name_data(df)
     
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
     
 def subwaystation_montly_data(**kwargs):
     """
-    task instance로 부터 pandas df를 pull하고
-    Feature engineering한 테이블형태로 정제하며 
+    앞선 task에서 수집한 작년의 월별/시간대별 데이터를 정제한다.
 
-    airflow task instance에해당 데이터를 push 한다.
+    xcom_pull : row_dataframe
+    xcom_pust : refine_dataframe
     """
     print("start refine task!")
     ti = kwargs['ti']
@@ -76,7 +79,10 @@ def subwaystation_montly_data(**kwargs):
         'STTN': 'name',
         'SBWY_ROUT_LN_NM': 'line'
     }, inplace=True)
-
+    
+    # name 정제
+    feature_table_grouped = refine_subway_name_data(feature_table_grouped)
+    
     # total 컬럼 추가
     feature_table_grouped['total'] = feature_table_grouped['get_on'] + feature_table_grouped['get_off']
 
@@ -86,9 +92,10 @@ def subwaystation_montly_data(**kwargs):
 
 def subwaystation_daily_data(**kwargs):
     """
-    task instance로 부터 pandas df를 pull하고
+    일일단위 (4일전) 데이터를 수집하고 정제하는 함수
 
-    컬럼명 변경
+    xcom_pull : row_dataframe
+    xcom_push : refine_dataframe
     """
     print("start refine task!")
     ti = kwargs['ti']
@@ -102,15 +109,16 @@ def subwaystation_daily_data(**kwargs):
         'GTOFF_TNOPE':'get_off_d'
     })
     df = df.drop(columns='REG_YMD')
-
+    df = refine_subway_name_data(df)
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
 def subwaystation_prediction_hourly_data(**kwargs):
     """
-    예측한 시간대별 데이터를 pull 하고 
+    Modeling 과정을 통해 생성된 데이터를 정제하는 함수
 
-    스키마지정
+    xcom_pull : row_dataframe
+    xcom_pust : refine_dataframe
     """
     print("start refine task!")
     ti = kwargs['ti']
@@ -128,6 +136,7 @@ def subwaystation_prediction_hourly_data(**kwargs):
         'hour':'hour',
         'predicted_total':'predicted_total'
     })
+    df = refine_subway_name_data(df)
     df.info()
     ti.xcom_push(key='refine_dataframe',value=df)
     
