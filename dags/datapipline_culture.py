@@ -13,7 +13,7 @@ from datetime import timedelta
 # batch 처리 api key
 # check hook flag true
 api_key = Variable.get("seoul_api_key")
-OPEN_AI_KEY=Variable.get("OPEN_AI_KEY")
+OPEN_AI_KEY=Variable.get("OPEN_AI_KEY_secret")
 
 # 데이터베이스, 스키마, 테이블명 정의(main table and sub table for compare)
 target_db = postgreSQL("seoulmoa","datawarehouse","event")
