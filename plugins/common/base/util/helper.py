@@ -1,5 +1,5 @@
 # event 정제 함수
-import pandas as pd
+
 def corret_lat_lot(row):
     lat = row['LAT']
     lot = row['LOT']
@@ -11,7 +11,7 @@ def corret_lat_lot(row):
 
 # subway 관련 daily 데이터 정제함수
 # `(` 뒤의 값을 날리고, "역을 삭제한후 다시 붙히는 형식"
-def refine_subway_name_data(df:pd.DataFrame):
+def refine_subway_name_data(df):
     df['name'] = df['name'].str.replace(r"\s*\(.*\)", "", regex=True)
     df['name'] = df['name'].apply(lambda x: x if x.endswith('역') else x + '역')
     return df
