@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer, Text
+from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer, Text , BigInteger
 import psycopg2
 import pandas as pd
 
@@ -159,6 +159,11 @@ class postgreSQL():
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='to_save_data')
+        
+        # sync table 처리
+        if self.table_name == "event_sync":
+            df["0"] = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
+        
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
             name=self.table_name,
@@ -167,7 +172,7 @@ class postgreSQL():
             if_exists='replace',
             index=False,
             dtype={
-                'event_id':Integer,
+                'event_id':BigInteger,
                 'title': String,
                 'category_name': String,
                 'gu': String,
@@ -179,9 +184,11 @@ class postgreSQL():
                 'latitude':Float,
                 'longitude':Float,
                 'hompage':String,
-                'image_url':String,
+                'image_url':Text,
+                'detail_url':Text,
                 'target_user':String,
-                'event_description':Text
+                'event_description':Text,
+                '0': DateTime # only sync table
             }
         )
         print("save task done!")
