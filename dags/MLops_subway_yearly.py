@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.init.get_last_year_initial_data_set import get_data
-from common.jobs.subway.subway_ import subwaystation_montly_data
+from common.jobs.subway_ import subwaystation_montly_data
 from common.jobs.repository import postgreSQL
 import pendulum
 
