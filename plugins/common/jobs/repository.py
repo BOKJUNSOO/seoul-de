@@ -184,10 +184,11 @@ class postgreSQL():
                 'latitude':Float,
                 'longitude':Float,
                 'hompage':String,
-                'image_url':String,
+                'image_url':Text,
+                'detail_url':Text,
                 'target_user':String,
                 'event_description':Text,
-                '0': DateTime
+                '0': DateTime # only sync table
             }
         )
         print("save task done!")
