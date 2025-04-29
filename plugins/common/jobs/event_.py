@@ -6,22 +6,20 @@ import openai
 from common.base.util.helper import corret_lat_lot
 from datetime import datetime
 
-def event_data(type_,**kwargs):
+def event_data(**kwargs):
     """
     공공데이터 API 호출이 끝난 이후 row dataframe을 정제하는 함수 refine_data_* 테스크에 이용
     flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
     **중요** : 공공 API 에 LOT 과 LAT 이 반대로 표기. 이에 맞춰 정제한다.
 
     args:
-        type_ : "init" or "sync"
-            - init : event 테이블이 없는 경우에 인자로 전달된 테스크가 실행된다. (refine_data)
-            - sync : event 테이블이 있는 경우에 인자로 전달된 테스크가 실행된다. (refine_data_s)
         pull key : row_dataframe
             - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
             - 이는 추후 check_event_description_* task에 영향
     return : 
         push key : refine_dataframe
     """
+
     print("start refine task!")
     ti = kwargs['ti']
     # pull task instance
@@ -42,48 +40,27 @@ def event_data(type_,**kwargs):
     df.loc[condtion,'CODENAME'] = "축제"
     
     # follow schema
-    if type_ == "sync":
-        columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT']    
-        df = df[columns]
-        df = df.rename(columns={
-            'ROW_NUMBER':'event_id',
-            'TITLE':'title',
-            'CODENAME':'category_name',
-            'GUNAME':'gu',
-            'PLACE':'location',
-            'STRTDATE':'start_date',
-            'END_DATE':'end_date',
-            'USE_FEE':'fee',
-            'BOOL_FEE':'is_free',
-            'LAT':'longitude',
-            'LOT':'latitude',
-            'HMPG_ADDR':'homepage',
-            'MAIN_IMG':'image_url',
-            'ORG_LINK':'detail_url',
-            'USE_TRGT':'target_user'
-        })
-    
-    elif type_=="init":
-        columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
-        df = df[columns]
-        df = df.rename(columns={
-            'ROW_NUMBER':'event_id',
-            'TITLE':'title',
-            'CODENAME':'category_name',
-            'GUNAME':'gu',
-            'PLACE':'location',
-            'STRTDATE':'start_date',
-            'END_DATE':'end_date',
-            'USE_FEE':'fee',
-            'BOOL_FEE':'is_free',
-            'LAT':'longitude',
-            'LOT':'latitude',
-            'HMPG_ADDR':'homepage',
-            'MAIN_IMG':'image_url',
-            'ORG_LINK':'detail_url',
-            'USE_TRGT':'target_user',
-            'ALT':'event_description'
-        })
+
+    columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
+    df = df[columns]
+    df = df.rename(columns={
+        'ROW_NUMBER':'event_id',
+        'TITLE':'title',
+        'CODENAME':'category_name',
+        'GUNAME':'gu',
+        'PLACE':'location',
+        'STRTDATE':'start_date',
+        'END_DATE':'end_date',
+        'USE_FEE':'fee',
+        'BOOL_FEE':'is_free',
+        'LAT':'longitude',
+        'LOT':'latitude',
+        'HMPG_ADDR':'homepage',
+        'MAIN_IMG':'image_url',
+        'ORG_LINK':'detail_url',
+        'USE_TRGT':'target_user',
+        'ALT':'event_description'
+    })
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
@@ -99,13 +76,16 @@ def check_event_description(type_,**kwargs) -> dict:
         pull key : 
             -refine_dataframe (both)
                 - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
-                - 이는 추후 check_event_description_* task에 영향
+                    - sync : 기존에 존재하지 않던 row 만 row number : homepage 리턴
+                    - init : 행사 진행 기준으로 필터링 및 200자 이하 description의 row number : homepage 리턴
+                - 이후 push 하지 않는다!
+
             -event (only sync.)
-                - event table과 신규 테이블 비교 (read event table task가 있을 경우만 사용)
+                - event table과 신규 테이블 비교
     return : 
-        push key : refine_dataframe (only sync.)
         push key : research_dict (both)
     """
+    target_dict = {}
     ti = kwargs["ti"]
     df = ti.xcom_pull(key='refine_dataframe')
     BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
@@ -121,21 +101,25 @@ def check_event_description(type_,**kwargs) -> dict:
         # 정보없는 페이지 필터링
         condition3 = df['event_description'] != '정보없음'
         df = df[condition3]
+        target_df = df
+        for _,row in target_df.iterrows():
+            target_dict[row['event_id']] = row['homepage'] # 다시 저장할 내용 정리
+        ti.xcom_push(key="research_dict",value=target_dict) # refine_dataframe을 그대로 이용한다.
     
     if type_ == "sync":
-        # read 한 event 테이블과 비교했을때 hompage 기준으로 새롭게 존재하는 row만 찾아서 df로 반환하는 함수
         event_df = ti.xcom_pull(key="event")
-        print("debugging outside:",event_df.info())
-        df = check_diff(df,event_df)
+        print("compare event with table")
+        # read 한 event 테이블과 비교했을때 hompage 기준으로 새롭게 존재하는 row만 찾아서 df로 반환하는 함수
+        new_parsing_row = check_diff(df,event_df) # 새롭게 description을 생성할 df
         # 기존의 refine_dataframe을 사용하지 않는다.
+        target_df = new_parsing_row
+        for _,row in target_df.iterrows():
+            target_dict[row['event_id']] = row['homepage']
+        
         # init 모드의 경우 해당 키값을 사용해야 한다.
-        ti.xcom_push(key="refine_dataframe",value=df)
+        print("summary_ai 이후 dataframe과 비교하세요. :",len(df))
+        ti.xcom_push(key="research_dict",value=target_dict)
 
-    target_dict = {}
-    for _,row in df.iterrows():
-        target_dict[row['event_id']] = row['homepage'] # 다시 저장할 내용 정리
-    
-    ti.xcom_push(key="research_dict",value=target_dict)
     print("let`s start re_search")
 
 def re_search_function(**kwargs)->dict:
@@ -233,14 +217,12 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
                 continue
     
     # 기존 데이터 프레임에 description 대치!
-    df.info()
-    print(result_dict)
     for _, row in df.iterrows():
         event_id = row['event_id'] # event_id : int type
 
         if str(event_id) in result_dict: # result_dict key : string type
             df.loc[df['event_id'] == event_id,'event_description'] = result_dict[str(event_id)]
-
+    print("sync task인 경우 description 단계의 테이블과 비교하세요.:",len(df))
     ti.xcom_push(key="to_save_data",value=df)
 
 def check_diff(df,event_df)->pd.DataFrame:
