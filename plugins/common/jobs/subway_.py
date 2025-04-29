@@ -1,5 +1,5 @@
 import pandas as pd
-from common.base.util.helper import refine_subway_name_data
+#from common.base.util.helper import refine_subway_name_data
 # 원하는 형태로 테이블을 정제하는 모듈
 # 사전에 정의한 스키마로 컬러머명을 변경
 
@@ -23,7 +23,7 @@ def subwaystation_data(**kwargs):
         'LOT':'longitude'
     })
     # name 정제
-    df = refine_subway_name_data(df)
+    #df = refine_subway_name_data(df)
     
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
@@ -81,7 +81,7 @@ def subwaystation_montly_data(**kwargs):
     }, inplace=True)
     
     # name 정제
-    feature_table_grouped = refine_subway_name_data(feature_table_grouped)
+    #feature_table_grouped = refine_subway_name_data(feature_table_grouped)
     
     # total 컬럼 추가
     feature_table_grouped['total'] = feature_table_grouped['get_on'] + feature_table_grouped['get_off']
@@ -109,7 +109,7 @@ def subwaystation_daily_data(**kwargs):
         'GTOFF_TNOPE':'get_off_d'
     })
     df = df.drop(columns='REG_YMD')
-    df = refine_subway_name_data(df)
+    #df = refine_subway_name_data(df)
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
@@ -136,7 +136,7 @@ def subwaystation_prediction_hourly_data(**kwargs):
         'hour':'hour',
         'predicted_total':'predicted_total'
     })
-    df = refine_subway_name_data(df)
+    #df = refine_subway_name_data(df)
     df.info()
     ti.xcom_push(key='refine_dataframe',value=df)
     
