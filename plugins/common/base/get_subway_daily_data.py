@@ -4,9 +4,16 @@ import time
 result_list=[]
 def get_data(api_key,**kwargs):
     """
-    전달받은 api_key를 이용해 일일단위 지하철 이용량 데이터를 요청하고
+    subway_data_daily 테이블을 생성한다.
+    일일 예측 feature를 쌓기 위한 용도로 사용된다.
+    get_subtway_initial_data_set 모듈과 해당 함수로 쌓인 피쳐데이터를 이용해 일일 예측량을 계산한다.
 
-    airflow task instance에 해당 데이터를 push 한다
+    args:
+        api_key : 서울 공공데이터 api키
+
+    push key:
+        row_dataframe
+        - 단순히 호출된 데이터 이므로 row_dataframe으로 정의한다.
     """
 
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(days=4).strftime("%Y%m%d")

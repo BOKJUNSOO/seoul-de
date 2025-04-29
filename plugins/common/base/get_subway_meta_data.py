@@ -6,9 +6,15 @@ from bs4 import BeautifulSoup
 result_list = []
 def get_data(api_key:str,**kwargs):
     """
-    전달받은 api_key를 이용해 역사마스터 데이터를 요청하고
+    역사 마스터 정보를 수집하는 함수
+    subway_station 테이블을 생성한다.
 
-    airflow task instance에 해당 데이터를 push 한다
+    args:
+        api_key : 서울 공공데이터 api키
+
+    push key:
+        row_dataframe
+        - 단순히 호출된 데이터 이므로 row_dataframe으로 정의한다.
     """
 
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")

@@ -3,16 +3,18 @@ from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.models import Variable
 
-from common.base.get_culture_data import get_data
-from common.jobs.transfer import event_data
+from common.base.get_culture_data import get_data, make_sync_table
+from common.jobs.event_ import event_data, check_event_description, re_search_function, make_summary_ai
 from common.jobs.repository import postgreSQL
-from common.base.util.check_task import check_status
+from common.base.util.check_task import check_status, check_daily
 import pendulum
 from datetime import timedelta
 
 # batch 처리 api key
 # check hook flag true
 api_key = Variable.get("seoul_api_key")
+OPEN_AI_KEY=Variable.get("OPEN_AI_KEY")
+
 # 데이터베이스, 스키마, 테이블명 정의(main table and sub table for compare)
 target_db = postgreSQL("seoulmoa","datawarehouse","event")
 test_db = postgreSQL("seoulmoa","datawarehouse","event_sync")
@@ -37,24 +39,46 @@ with DAG (
     )
     
     # [make event table task]
-    make_event_data_=PythonOperator(
-        task_id="make_event_data_",
+    make_event_table_=PythonOperator(
+        task_id="make_event_table_",
         python_callable=get_data,
         op_args=[api_key]
     )
     
     # [make sync table task]
-    make_sync_data_=PythonOperator(
-        task_id="make_sync_data_",
-        python_callable=get_data,
+    make_sync_table_=PythonOperator(
+        task_id="make_sync_table_",
+        python_callable=make_sync_table,
         op_args=[api_key]
+    )
+
+    # [init or daily]
+    check_daily_=BranchPythonOperator(
+        task_id='check_daily_',
+        python_callable=check_daily,
+        trigger_rule="none_failed"
     )
 
     # [refine data and pass df]
     refine_data_=PythonOperator(
-        task_id="refine_data",
+        task_id="refine_data_",
         python_callable=event_data,
-        trigger_rule="none_failed"
+        trigger_rule="none_failed",
+        op_args=["init"]
+    )
+
+    # [refine data and pass df]
+    refine_data_s=PythonOperator(
+        task_id="refine_data_s",
+        python_callable=event_data,
+        trigger_rule="none_failed",
+        op_args=["sync"]
+    )
+
+    # compare table
+    read_event_table_=PythonOperator(
+        task_id="read_event_table",
+        python_callable=target_db.read_table
     )
 
     # [check status]
@@ -63,12 +87,39 @@ with DAG (
         python_callable=check_status
     )
 
+    # [check event description and filltering]
+    check_event_description_i_=PythonOperator(
+        task_id='check_event_description_i_',
+        python_callable=check_event_description,
+        op_args=["init"]
+    )
+
+    check_event_description_s_=PythonOperator(
+        task_id='check_event_description_s_',
+        python_callable=check_event_description,
+        op_args=["sync"]
+    )
+
+    # [re_search_ for html page]
+    re_search_ = PythonOperator(
+        task_id='re_search_',
+        python_callable=re_search_function,
+        trigger_rule="none_failed"
+    )
+
+    #[make_ai_summary task]
+    make_summary_ai_=PythonOperator(
+        task_id='make_summary_ai_',
+        python_callable=make_summary_ai,
+        op_args=[OPEN_AI_KEY]
+    )
+
     # [save to event table]
     save_to_event_=PythonOperator(
         task_id="save_to_event_",
         python_callable=target_db.save_to_event_table
     )
-
+    
     # [save to sync table]
     save_to_sync_=PythonOperator(
         task_id="save_to_sync_",
@@ -163,6 +214,7 @@ with DAG (
                 event_description
             FROM numbered;
                      """)
+    # make initial data
+    check_data_ >> make_event_table_ >> check_daily_ >> refine_data_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
 
-    check_data_ >> make_event_data_ >> refine_data_ >> check_status_ >> save_to_event_
-    check_data_ >> make_sync_data_  >> refine_data_ >> check_status_ >> save_to_sync_ >> insert_event_
+    check_data_ >> make_sync_table_  >> check_daily_ >> refine_data_s >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_ >> insert_event_
