@@ -72,7 +72,6 @@ with DAG (
     [read_montly_data_, read_daily_data_] 
     >> train_daily_model 
     >>[make_daily_prediction ,read_year_data_]
-#    >> test
     >> calculate_ratio_
     >> refine_data_
     >> save_data_
