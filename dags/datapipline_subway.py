@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 
 from common.base.get_subway_meta_data import get_data
-from common.jobs.subway.subway_ import subwaystation_data
+from common.jobs.subway_ import subwaystation_data
 from common.jobs.repository import postgreSQL
 import pendulum
 from datetime import timedelta

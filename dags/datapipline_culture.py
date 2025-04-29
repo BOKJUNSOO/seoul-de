@@ -4,7 +4,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.models import Variable
 
 from common.base.get_culture_data import get_data, make_sync_table
-from common.jobs.event.event_ import event_data, check_event_description, re_search_function, make_summary_ai
+from common.jobs.event_ import event_data, check_event_description, re_search_function, make_summary_ai
 from common.jobs.repository import postgreSQL
 from common.base.util.check_task import check_status, check_daily
 import pendulum
