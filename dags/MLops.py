@@ -6,7 +6,6 @@ from common.model.daily.preprocessing import modeling
 from common.model.daily.postprocessing import predict_all_for_date # test
 from common.model.daily.calculate import make_hourly_dataframe
 from common.jobs.subway_ import subwaystation_prediction_hourly_data
-from plugins.common.base.util.helper import refine_subway_name_data
 import pendulum
 
 # target to read/ write table
