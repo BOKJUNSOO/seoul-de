@@ -70,7 +70,7 @@ class postgreSQL():
             print(f"{table}이 존재하지 않습니다.")
             print(f"{table}을 생성합니다..")
             ti.xcom_push(key="key",value="save_to_event_")
-            next_task="make_event_table"
+            next_task="make_event_table_"
             return next_task
         else:
             print(f"{table}이 존재합니다.")
