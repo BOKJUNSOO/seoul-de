@@ -126,7 +126,6 @@ def make_sync_table(api_key:str,**kwargs):
     # json to table
     df = pd.DataFrame(sync_table)
     print(f"최종 수집 건수: {len(df)}")
-    print(df)
     # task instance
     ti = kwargs['ti']
     ti.xcom_push(key='row_dataframe', value=df)
@@ -201,7 +200,6 @@ def get_data(api_key:str,**kwargs):
     # json to table
     df = pd.DataFrame(result_list)
     print(f"최종 수집 건수: {len(df)}")
-    print(df)
     # task instance
     ti = kwargs['ti']
     ti.xcom_push(key='row_dataframe', value=df)
