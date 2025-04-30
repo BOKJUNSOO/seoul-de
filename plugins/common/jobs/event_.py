@@ -96,14 +96,14 @@ def check_event_description(type_,**kwargs) -> dict:
 
     if type_ == "init":
         # 파싱해온 description (alt 에 작성된 내용)의 길이가 너무 짧은 row 필터링(event 전용)
-        condition2 = df['event_description'].str.len() <=200
-        df = df[condition2]
         # 정보없는 페이지 필터링
-        condition3 = df['event_description'] != '정보없음'
-        df = df[condition3]
+        # 모든 내용 요약으로 변경!
+        condition2 = df['event_description'] != '정보없음'
+        df = df[condition2]
         target_df = df
         for _,row in target_df.iterrows():
-            target_dict[row['event_id']] = row['homepage'] 
+            target_dict[row['event_id']] = row['homepage']
+        print("summary_ai 이후 dataframe과 비교하세요 :", len(df))
         ti.xcom_push(key="research_dict",value=target_dict)
     
     if type_ == "sync":
@@ -188,11 +188,12 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
     # 모아온 html을 차례대로 요청 및 예외처리
     for idx, text in result_dict.items():   
         prompt = f"""
-        다음 텍스트는 html 페이지에서 특정 태그를 파싱해온 결과야.
-        - 새로운 정보를 추가하지 말고 있는 정보를 정리해줘.
-        - 밝은 느낌으로 내용을 소개해줘.
-        - 꼭 경어체를 사용해줘.
-        
+        The following text is the result of parsing specific tags from an HTML page.  
+        - Please do not add any new information; only use the content provided.  
+        - Summarize the content in Korean, within around 1000 characters, with a clear beginning, development, turn, and conclusion.
+        - Present the summary in a cheerful and light tone.  
+        - Be sure to use polite (respectful) language.
+
         {text}
         """
         for retry in range(4):
@@ -220,7 +221,7 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
 
         if str(event_id) in result_dict: # result_dict key : string type
             df.loc[df['event_id'] == event_id,'event_description'] = result_dict[str(event_id)]
-    print("sync task인 경우 description 단계의 테이블과 비교하세요.:",len(df))
+    print("description 단계의 테이블과 비교하세요.:",len(df))
     ti.xcom_push(key="to_save_data",value=df)
 
 def check_diff(df,event_df)->pd.DataFrame:
