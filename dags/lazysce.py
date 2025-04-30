@@ -6,7 +6,7 @@ import pendulum
 from datetime import timedelta
 
 with DAG (
-    dag_id='datapipline_subway_seoul_data',
+    dag_id='lazy_',
     description="스케줄러 테스트용 dummy dag",
     schedule='0 3 */2 * *',
     start_date=pendulum.datetime(2025,4,17, tz='Asia/Seoul'),
