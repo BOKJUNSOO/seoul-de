@@ -1,8 +1,8 @@
-import requests
-import pandas as pd
-import time
 result_list=[]
 def get_data(api_key,**kwargs):
+    import requests
+    import pandas as pd
+    import time
     """
     subway_data_daily 테이블을 생성한다.
     일일 예측 feature를 쌓기 위한 용도로 사용된다.

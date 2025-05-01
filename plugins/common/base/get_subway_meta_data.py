@@ -1,10 +1,7 @@
-import requests
-import pandas as pd
-from datetime import datetime
-from bs4 import BeautifulSoup
-
 result_list = []
 def get_data(api_key:str,**kwargs):
+    import requests
+    import pandas as pd
     """
     역사 마스터 정보를 수집하는 함수
     subway_station 테이블을 생성한다.

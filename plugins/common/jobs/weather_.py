@@ -1,7 +1,3 @@
-import pandas as pd
-
-# note ) flag(with repository function) -> make grid-> get_data -> refine -> save task!
-# get_data 제대로 구현하기 (경우의수..)
 def refine_weather_table(**kwargs):
     """
     xcom_pull:
@@ -31,6 +27,7 @@ def refine_weather_table(**kwargs):
     ti.xcom_push(key='refine_dataframe',value=df)
 
 def make_grid(**kwargs):
+    import pandas as pd
     """
     grid table를 생성하는 함수
 

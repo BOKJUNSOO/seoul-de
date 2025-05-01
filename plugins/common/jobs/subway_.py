@@ -1,9 +1,8 @@
-import pandas as pd
-from common.base.util.helper import refine_subway_name_data
 # 원하는 형태로 테이블을 정제하는 모듈
 # 사전에 정의한 스키마로 컬러머명을 변경
 
 def subwaystation_data(**kwargs):
+    from common.base.util.helper import refine_subway_name_data
     """
     subway_station 테이블을 생성하는 airflow task 함수
 
@@ -29,6 +28,8 @@ def subwaystation_data(**kwargs):
     print("refine task done!")
     
 def subwaystation_montly_data(**kwargs):
+    import pandas as pd
+    from common.base.util.helper import refine_subway_name_data
     """
     앞선 task에서 수집한 작년의 월별/시간대별 데이터를 정제한다.
 
@@ -91,6 +92,7 @@ def subwaystation_montly_data(**kwargs):
 
 
 def subwaystation_daily_data(**kwargs):
+    from common.base.util.helper import refine_subway_name_data
     """
     일일단위 (4일전) 데이터를 수집하고 정제하는 함수
 
@@ -114,6 +116,7 @@ def subwaystation_daily_data(**kwargs):
     print("refine task done!")
 
 def subwaystation_prediction_hourly_data(**kwargs):
+    from common.base.util.helper import refine_subway_name_data
     """
     Modeling 과정을 통해 생성된 데이터를 정제하는 함수
 

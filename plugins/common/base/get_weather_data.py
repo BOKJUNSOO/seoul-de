@@ -1,8 +1,8 @@
-import requests
-import pandas as pd
-import time
 result_list=[]
 def get_data(api_key:str,**kwargs):
+    import requests
+    import pandas as pd
+    import time
     """
     매 시 정각마다 api 요청을 한다.
     ex) 22시 요청 -> 22시 데이터가 필요하므로 2130 basetime을 갖는 header를 설정해 호출
