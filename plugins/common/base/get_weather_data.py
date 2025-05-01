@@ -27,7 +27,7 @@ def get_data(api_key:str,**kwargs):
     
     grids=ti.xcom_pull(key='grids')
 
-    base_date = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y%m%d")
+    base_date = kwargs["data_interval_end"].in_timezone("Asia/Seoul").subtract(hours=1).strftime("%Y%m%d")
     base_time = kwargs['data_interval_end'].in_timezone("Asia/Seoul").subtract(hours=1).strftime('%H')
     base_time = f"{base_time}30"
     
