@@ -1,12 +1,11 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.models import Variable
 
 from common.base.get_culture_data import get_data #, make_sync_table
-from common.jobs.event_ import event_data, check_event_description, re_search_function, make_summary_ai
+from common.jobs.event_ import event_data, check_event_description, re_search_function, make_summary_ai , check_status, check_daily
 from common.jobs.repository import postgreSQL
-from common.base.util.check_task import check_status, check_daily
+
 import pendulum
 from datetime import timedelta
 
@@ -25,26 +24,19 @@ with DAG (
 ) as dag:
     
     # [check_database]
-    check_data_=BranchPythonOperator(
+    check_data_=PythonOperator(
         task_id='check_data_',
         python_callable=postgreSQL("seoulmoa","datawarehouse","event").check_table
     )
     
-    # [make event table task]
-    make_event_table_=PythonOperator(
-        task_id="make_event_table_",
-        python_callable=get_data,
-        op_args=[Variable.get("seoul_api_key")]
-    )
-    
-    # [make sync table task]
-    make_sync_table_=PythonOperator(
-        task_id="make_sync_table_",
+    # [make basic event table task]
+    get_event_data_=PythonOperator(
+        task_id="get_event_data_",
         python_callable=get_data,
         op_args=[Variable.get("seoul_api_key")]
     )
 
-    # [init or daily]
+    # [init or sync]
     check_daily_=BranchPythonOperator(
         task_id='check_daily_',
         python_callable=check_daily,
@@ -80,14 +72,12 @@ with DAG (
     # [check event description and filltering]
     check_event_description_i_=PythonOperator(
         task_id='check_event_description_i_',
-        python_callable=check_event_description,
-        op_args=["init"]
+        python_callable=check_event_description
     )
 
     check_event_description_s_=PythonOperator(
         task_id='check_event_description_s_',
-        python_callable=check_event_description,
-        op_args=["sync"]
+        python_callable=check_event_description
     )
 
     # [re_search_ for html page]
@@ -205,6 +195,6 @@ with DAG (
     #         FROM numbered;
     #                  """)
     # make initial data
-    check_data_ >> make_event_table_ >> check_daily_ >> refine_data_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
+    check_data_ >> get_event_data_ >> check_daily_ >> refine_data_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
 
-    check_data_ >> make_sync_table_  >> check_daily_ >> refine_data_s >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_
+    check_data_ >> get_event_data_ >> check_daily_ >> refine_data_s >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_
