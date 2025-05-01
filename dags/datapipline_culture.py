@@ -50,16 +50,9 @@ with DAG (
         trigger_rule="none_failed"
     )
 
-    # [refine data and pass df]
-    refine_data_s=PythonOperator(
-        task_id="refine_data_s",
-        python_callable=event_data,
-        trigger_rule="none_failed"
-    )
-
     # compare table
     read_event_table_=PythonOperator(
-        task_id="read_event_table",
+        task_id="read_event_table_",
         python_callable=postgreSQL("seoulmoa","datawarehouse","event").read_table
     )
 
@@ -195,6 +188,6 @@ with DAG (
     #         FROM numbered;
     #                  """)
     # make initial data
-    check_data_ >> get_event_data_ >> check_daily_ >> refine_data_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
+    check_data_ >> get_event_data_ >> refine_data_ >> check_daily_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
 
-    check_data_ >> get_event_data_ >> check_daily_ >> refine_data_s >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_
+    check_data_ >> get_event_data_ >> refine_data_ >> check_daily_ >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_

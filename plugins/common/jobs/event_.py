@@ -76,10 +76,10 @@ def check_daily(**kwargs):
     ti = kwargs['ti']
     status = str(ti.xcom_pull(task_ids='check_data_',key='key'))
     if status == "init":
-        status = "refine_data_"
+        status = "check_event_description_i_"
     
     if status == "sync":
-        status = "refine_data_s"
+        status = "read_event_table_"
     return status
 
 def check_event_description(**kwargs) -> dict:
