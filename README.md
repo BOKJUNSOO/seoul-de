@@ -22,15 +22,17 @@ pw: airflow
 ```
 
 - 키값 설정
-`OPEN AI 와 공공데이터 키를 발급 받으셔야 합니다!`
+`OPEN AI 와 서울열린광장 + 공공데이터 키를 발급 받으셔야 합니다!`
 
 ```
 1. 접속후 상단네비게이션 바에서 `Admin` 선택
 2. `Variable` 접속후 `+` 로 키값 설정
 3. `key` 란에 꼭! `seoul_api_key`라고 작성, `Val` 란에 발급받은 키 작성
 4. `key`를 `OPEN_AI_KEY_secret` 라고 작성, `Val` 란에 발급받은 키 작성
+5. `key`를 `portal_key_secret` 라고 작성, `Val` 란에 발급받은 키 작성
 ```
 ---
+
 #### 2. connection 설정
 
 
@@ -49,10 +51,11 @@ pw: airflow
 <br>
 
 ---
+
 <br>
 
 ### DB 설정
-`1가지만`해주시면 됩니다
+
 
 컨테이너 내부에서 `schema`와 `database`를 미리 만들어야 합니다.\
 저장할 이름은 `refine_data.py` 에서 설정해줄 수 있습니다.
