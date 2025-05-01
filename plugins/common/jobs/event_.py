@@ -1,12 +1,5 @@
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-import time
-import openai
-from common.base.util.helper import corret_lat_lot
-from datetime import datetime
-
 def event_data(**kwargs):
+    import pandas as pd    
     """
     공공데이터 API 호출이 끝난 이후 row dataframe을 정제하는 함수 refine_data_* 테스크에 이용
     flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
@@ -64,21 +57,46 @@ def event_data(**kwargs):
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
+# check_daily_ task 의 값을 결정하는 함수
+def check_daily(**kwargs):
+    """
+    공공데이터 API 호출이 끝난 이후 실행되는 BranchOperator 함수
+    flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
+    args:
+        pull key : check_data_
+            - 메인 파이프라인 시작 task에서 check table 이후(repository 메서드) 메모리에 존재하는 값을 이용한다.
+            - 해당 task에서 event 처리인지 sync 처리인지가 결정되어 있다.
+    
+    return : 
+        status : string
+            - 다음 테스크를 결정해준다.
+            - refine_data_ 혹은 refine_data_s task 둘중 하나의 값을 가진다.
+            - 전자의 경우 event 테이블 정제/ 후자의 경우 event sync 테이블 정제
+    """
+    ti = kwargs['ti']
+    status = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    if status == "init":
+        status = "refine_data_"
+    
+    if status == "sync":
+        status = "refine_data_s"
+    return status
 
-def check_event_description(type_,**kwargs) -> dict:
+def check_event_description(**kwargs) -> dict:
+    from datetime import datetime
     """
     event descrition을 확인하고 추가로 필요한 homepage + row를 키벨류쌍으로 리턴하는 함수
 
     args:
-        type_:
-            init : 처음 파싱해온 description 의 타당도 여부를 결정하고 진행중인 이벤트를 기준으로 dictionary 리턴
-            sync : refine_dataframe 을 새롭게 정의하고(어제는 존재하지 않던 row), descrition을 요청할 dictionary 리턴
         pull key : 
             -refine_dataframe (both)
                 - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
                     - sync : 기존에 존재하지 않던 row 만 row number : homepage 리턴
                     - init : 행사 진행 기준으로 필터링 및 200자 이하 description의 row number : homepage 리턴
                 - 이후 push 하지 않는다!
+            
+            -key
+                - DAG 첫 페이즈의 key 값을기준으로 판다 (init or sync)
 
             -event (only sync.)
                 - event table과 신규 테이블 비교
@@ -88,6 +106,7 @@ def check_event_description(type_,**kwargs) -> dict:
     target_dict = {}
     ti = kwargs["ti"]
     df = ti.xcom_pull(key='refine_dataframe')
+    type_ = ti.xcom_pull(key='key',task_ids='check_data_')
     BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
     
     # 진행중인 행사만 필터링
@@ -121,6 +140,9 @@ def check_event_description(type_,**kwargs) -> dict:
     print("let`s start re_search")
 
 def re_search_function(**kwargs)->dict:
+    import requests
+    from bs4 import BeautifulSoup
+    import time
     """
     requesets를 통해 AI에게 요약을 부탁할 문자열을 파싱해오는 함수
     culture content의 span에 존재하는 문자열, alt에 붙어있는 설명을 모두 가져온다.
@@ -166,6 +188,7 @@ def re_search_function(**kwargs)->dict:
 
 
 def make_summary_ai(OPEN_AI_KEY,**kwargs):
+    import openai
     """
     requesets를 통해 AI에게 요약을 부탁할 문자열을 파싱해오는 함수
     culture content의 span에 존재하는 문자열, alt에 붙어있는 설명을 모두 가져온다.
@@ -224,7 +247,34 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
     print("description 단계의 테이블과 비교하세요.:",len(df))
     ti.xcom_push(key="to_save_data",value=df)
 
-def check_diff(df,event_df)->pd.DataFrame:
+# check_status_ task 의 값을 결정하는 함수
+def check_status(**kwargs):
+    """
+    AI 요약 이후에 실행되는 BranchOperater 함수
+    event 혹은 sync 테이블중 어떤 테이블을 이용할지 String 으로 리턴해준다.
+    args:
+        pull key : check_data_
+            - 메인 파이프라인 시작 task에서 check table 이후(repository 메서드) 메모리에 존재하는 값을 이용한다.
+            - 해당 task에서 event 처리인지 sync 처리인지가 결정되어 있다.
+    
+    return : 
+        status : string
+            - 다음 테스크를 결정해준다.
+            - save_to_event_ 혹은 save_to_sync task 둘중 하나의 값을 가진다.
+    """
+    ti = kwargs['ti']
+    status = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    
+    
+    if status == 'init':
+        status = 'save_to_event_'
+        
+    if status == 'sync':
+        status = 'save_to_sync_'
+        
+    return status
+
+def check_diff(df,event_df):
     """
     task instance에 존재하는 sync 테이블과 event 테이블을 비교하고
     존재하지 않은 행사만 필터링한다.

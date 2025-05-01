@@ -1,7 +1,6 @@
-import datetime
-import calendar
-
 def get_month_dates(year:int, month:int) -> list:
+    import datetime
+    import calendar
     """
     전달의 데이터를 수집하기 위해 `최초 1회` 사용되는 함수
     get_last_initial_data_set 모듈에서 사용된다.

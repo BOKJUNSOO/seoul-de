@@ -1,10 +1,9 @@
-from common.base.util.set_time import get_last_year_months
-import requests
-import pandas as pd
-import time
-
 result_list=[]
 def get_data(api_key:str,**kwargs):
+    from common.base.util.set_time import get_last_year_months
+    import requests
+    import pandas as pd
+    import time
     """
     월별/시간별/역사별
     작년데이터를 수집합니다.

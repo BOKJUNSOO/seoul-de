@@ -1,8 +1,3 @@
-from sqlalchemy import create_engine
-from sqlalchemy import String ,DateTime, Boolean, String, Float, Integer, Text , BigInteger
-import psycopg2
-import pandas as pd
-
 class postgreSQL():
     """
     실제 Database postgresl에 접근하는 class
@@ -22,6 +17,7 @@ class postgreSQL():
     
     # check_database - branchOperator callable function
     def check_table(self,**kwargs):
+        import psycopg2
         print("--------check database is running--------")
         ti = kwargs['ti']
         conn_params = {
@@ -64,23 +60,22 @@ class postgreSQL():
         tables = [row[0] for row in cur.fetchall()]
         print("datawarehouse 스키마의 테이블들:", tables)
         
-        another_="event_sync"
         # 검사한 테이블(evnet 테이블)이 존재하지 않는 경우
         if table not in tables:
             print(f"{table}이 존재하지 않습니다.")
             print(f"{table}을 생성합니다..")
-            ti.xcom_push(key="key",value="save_to_event_")
-            next_task="make_event_table_"
-            return next_task
+            print(f'[xcom_push] key : key, value = init')
+            ti.xcom_push(key="key",value="init")
         else:
             print(f"{table}이 존재합니다.")
-            print(f"{another_}을 생성합니다..")
-            ti.xcom_push(key="key",value="save_to_sync_")
-            next_task="make_sync_table_"
-            return next_task
+            print(f"sync를 생성합니다..")
+            print(f'[xcom_push] key : key, value = sync')
+            ti.xcom_push(key="key",value="sync")
 
     # getter
     def read_table(self,**kwargs):
+        import psycopg2
+        import pandas as pd
         print("--------read task is running--------")
         
         # needed params for read database
@@ -156,6 +151,8 @@ class postgreSQL():
 
     # setter
     def save_to_event_table(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,DateTime, Boolean,Float, Text , BigInteger
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='to_save_data')
@@ -194,6 +191,8 @@ class postgreSQL():
         print("save task done!")
         
     def save_to_subway_table(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,Float
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
@@ -215,6 +214,8 @@ class postgreSQL():
         print("save task done!")
     
     def save_to_subwayMontly_table(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,Integer
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
@@ -238,6 +239,8 @@ class postgreSQL():
         print("save task done!")
 
     def save_to_subwayDaily_table(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,Integer
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
@@ -260,6 +263,8 @@ class postgreSQL():
         print("save task done!")
 
     def save_to_hourly_predict(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,DateTime,Integer
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe',task_ids='refine_data')
@@ -281,18 +286,45 @@ class postgreSQL():
         )
         print("save task done!")
     
-    # for test!
-    def save_to_daily_predict(self,**kwargs):
+    def save_to_weather_table(self,**kwargs):
+        from sqlalchemy import create_engine
+        from sqlalchemy import String ,DateTime,String
         print("--------save task is running--------")
         ti = kwargs['ti']
-        df = ti.xcom_pull(task_ids='make_daily_prediction',key='daily_dataframe')
-
+        df = ti.xcom_pull(key='refine_dataframe')
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        
         df.to_sql(
             name=self.table_name,
             con=engine,
             schema=self.schema,
             if_exists='replace',
             index=False,
+            dtype={
+                'date':DateTime,
+                'time':String,
+                'gu':String,
+                'weatherStatus':String
+            }
         )
         print("save task done!")
+
+        
+
+
+    # for test!
+    # def save_to_daily_predict(self,**kwargs):
+    #     print("--------save task is running--------")
+    #     ti = kwargs['ti']
+    #     df = ti.xcom_pull(task_ids='make_daily_prediction',key='daily_dataframe')
+
+    #     engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+    #     df.to_sql(
+    #         name=self.table_name,
+    #         con=engine,
+    #         schema=self.schema,
+    #         if_exists='replace',
+    #         index=False,
+    #     )
+    #     print("save task done!")
+    

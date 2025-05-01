@@ -1,9 +1,6 @@
-import requests
-import pandas as pd
-from bs4 import BeautifulSoup
-import time
-
 def parse_html(html_page_url,page)->str:
+    from bs4 import BeautifulSoup
+    import requests
     '''
     div 에서 행사정보(event_description)을 paring 해서 리턴하는 파이썬 함수
     culture-content 클래스의 alt 를 우선적으로 파싱하고, img-box 클래스의 alt를 두번째 순위로 파싱한다.
@@ -132,6 +129,9 @@ sync_table=[]
     
 result_list = []
 def get_data(api_key:str,**kwargs):
+    import time
+    import requests
+    import pandas as pd
     """
     event table을 생성한다.
     서비스의 시작지점.
@@ -167,7 +167,7 @@ def get_data(api_key:str,**kwargs):
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
         print(f"전체 데이터 건수: {end_page}")
-
+        
         print(f"수집 데이터 건수: {end_page}")
     except requests.exceptions.RequestException as e:
         print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")

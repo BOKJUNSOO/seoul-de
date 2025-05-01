@@ -1,11 +1,9 @@
-from common.base.util.set_time import get_month_dates
-import requests
-import pandas as pd
-import time
-
-
 result_list=[]
 def get_data(api_key,**kwargs):
+    from common.base.util.set_time import get_month_dates
+    import requests
+    import pandas as pd
+    import time
     """
     전달받은 api_key를 이용해 "전달의 모든" 일일 지하철 이용량 데이터를 요청하고
 
