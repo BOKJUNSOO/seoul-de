@@ -105,7 +105,7 @@ with DAG (
         task_id='insert_batch_status',
         postgres_conn_id='seoul_moa_event_conn',
         sql = """
-            INSERT INTO datawarehouse.batch_status (batch_id, execute_time, status)
+            INSERT INTO datawarehouse.batch_status (batch_id, excute_time, status)
             SELECT
                 COALESCE(MAX(batch_id), 0) + 1,
                 '{{ execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d") }}'::date,
