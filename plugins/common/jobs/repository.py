@@ -157,10 +157,6 @@ class postgreSQL():
         ti = kwargs['ti']
         df = ti.xcom_pull(key='to_save_data')
         
-        # sync table 처리
-        if self.table_name == "event_sync":
-            df["0"] = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
-        
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
         df.to_sql(
             name=self.table_name,

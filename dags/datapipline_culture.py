@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.models import Variable
 
 from common.base.get_culture_data import get_data #, make_sync_table
@@ -99,95 +100,20 @@ with DAG (
         python_callable=postgreSQL("seoulmoa","datawarehouse","event_sync").save_to_event_table
     )
 
-    # [insert_task]
-    # insert_event_=PostgresOperator(
-    #      task_id='insert_event',
-    #      postgres_conn_id='seoul_moa_event_conn',
-    #      sql="""
-    #         WITH max_ev AS (
-    #             SELECT COALESCE(MAX(event_id), 0) AS last_id
-    #               FROM datawarehouse.event
-    #         ),
-    #         missing AS (
-    #             SELECT
-    #                 s.title,
-    #                 s.category_name,
-    #                 s.gu,
-    #                 s.location,
-    #                 s.start_date,
-    #                 s.end_date,
-    #                 s.fee,
-    #                 s.is_free,
-    #                 s.latitude,
-    #                 s.longitude,
-    #                 s.homepage,
-    #                 s.image_url,
-    #                 s.detail_url,
-    #                 s.target_user,
-    #                 s.event_description
-    #             FROM datawarehouse.event_sync AS s
-    #             LEFT JOIN datawarehouse.event AS e
-    #               ON s.homepage = e.homepage
-    #             WHERE e.homepage IS NULL
-    #         ),
-    #         numbered AS (
-    #             SELECT
-    #                 ROW_NUMBER() OVER () + (SELECT last_id FROM max_ev) AS new_event_id,
-    #                 title,
-    #                 category_name,
-    #                 gu,
-    #                 location,
-    #                 start_date,
-    #                 end_date,
-    #                 fee,
-    #                 is_free,
-    #                 latitude,
-    #                 longitude,
-    #                 homepage,
-    #                 image_url,
-    #                 detail_url,
-    #                 target_user,
-    #                 event_description
-    #             FROM missing
-    #         )
-    #         INSERT INTO datawarehouse.event (
-    #             event_id,
-    #             title,
-    #             category_name,
-    #             gu,
-    #             location,
-    #             start_date,
-    #             end_date,
-    #             fee,
-    #             is_free,
-    #             latitude,
-    #             longitude,
-    #             homepage,
-    #             image_url,
-    #             detail_url,
-    #             target_user,
-    #             event_description
-    #         )
-    #         SELECT
-    #             new_event_id,
-    #             title,
-    #             category_name,
-    #             gu,
-    #             location,
-    #             start_date,
-    #             end_date,
-    #             fee,
-    #             is_free,
-    #             latitude,
-    #             longitude,
-    #             homepage,
-    #             image_url,
-    #             detail_url,
-    #             target_user,
-    #             event_description
-    #         FROM numbered;
-    #                  """)
-    # make initial data
+    # [make note to batch_status table]
+    insert_batch_status_=PostgresOperator(
+        task_id='insert_batch_status',
+        postgres_conn_id='seoul_moa_event_conn',
+        sql = """
+            INSERT INTO datawarehouse.batch_status (batch_id, execute_time, status)
+            SELECT
+                COALESCE(MAX(batch_id), 0) + 1,
+                '{{ execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d") }}'::date,
+                0
+            FROM datawarehouse.batch_status;
+            """
+    )
+    
     check_data_ >> get_event_data_ >> refine_data_ >> check_daily_ >> check_event_description_i_>> re_search_>> make_summary_ai_>> check_status_ >> save_to_event_
 
-    check_data_ >> get_event_data_ >> refine_data_ >> check_daily_ >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_
+    check_data_ >> get_event_data_ >> refine_data_ >> check_daily_ >> read_event_table_ >> check_event_description_s_>> re_search_ >> make_summary_ai_>> check_status_ >>save_to_sync_ >> insert_batch_status_
