@@ -1,14 +1,19 @@
 def event_data(**kwargs):
-    import pandas as pd    
+    import pandas as pd
+    from datetime import datetime
     """
     공공데이터 API 호출이 끝난 이후 row dataframe을 정제하는 함수 refine_data_* 테스크에 이용
     flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
     **중요** : 공공 API 에 LOT 과 LAT 이 반대로 표기. 이에 맞춰 정제한다.
 
     args:
-        pull key : row_dataframe
+        pull key : 
+        - row_dataframe
             - API 호출이 끝난후 row_dataframe을 sync 혹은 init에 맞게 정제한다.
             - 이는 추후 check_event_description_* task에 영향
+        - key
+            - sync 테이블은 끝나지 않은 행사만 업데이트 시킨다.
+        
     return : 
         push key : refine_dataframe
     """
@@ -17,6 +22,9 @@ def event_data(**kwargs):
     ti = kwargs['ti']
     # pull task instance
     df = ti.xcom_pull(key='row_dataframe')
+    BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
+    type_ = ti.xcom_pull(key='key')
+
     # refine
     df["BOOL_FEE"] = df["IS_FREE"].map({'유료':False,
                                        '무료':True})
@@ -25,6 +33,14 @@ def event_data(**kwargs):
     df["STRTDATE"] = df["STRTDATE"].dt.date
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
     df["END_DATE"] = df["END_DATE"].dt.date
+    
+
+    # sync type 이라면 끝나지 않은 행사만 필터링
+    # row number 할당 이전에 처리
+    if type_=='sync':
+        condition1 = df['END_DATE'] >= BATCH_DATE
+        df = df.loc[condition1]
+    
     # add column
     df["ROW_NUMBER"] = range(1,len(df)+1)
     
@@ -33,8 +49,9 @@ def event_data(**kwargs):
     df.loc[condtion,'CODENAME'] = "축제"
     
     # follow schema
-
-    columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE','USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
+    columns = ['ROW_NUMBER','TITLE','CODENAME','GUNAME','PLACE','STRTDATE','END_DATE',
+               'USE_FEE','BOOL_FEE','LAT','LOT','HMPG_ADDR','MAIN_IMG','ORG_LINK','USE_TRGT','ALT']
+    
     df = df[columns]
     df = df.rename(columns={
         'ROW_NUMBER':'event_id',
@@ -54,6 +71,7 @@ def event_data(**kwargs):
         'USE_TRGT':'target_user',
         'ALT':'event_description'
     })
+    
     ti.xcom_push(key='refine_dataframe',value=df)
     print("refine task done!")
 
@@ -63,7 +81,7 @@ def check_daily(**kwargs):
     공공데이터 API 호출이 끝난 이후 실행되는 BranchOperator 함수
     flow의 흐름을 정리하기 위해 존재하는 중간단계의 함수
     args:
-        pull key : check_data_
+        pull key : key
             - 메인 파이프라인 시작 task에서 check table 이후(repository 메서드) 메모리에 존재하는 값을 이용한다.
             - 해당 task에서 event 처리인지 sync 처리인지가 결정되어 있다.
     
@@ -74,11 +92,11 @@ def check_daily(**kwargs):
             - 전자의 경우 event 테이블 정제/ 후자의 경우 event sync 테이블 정제
     """
     ti = kwargs['ti']
-    status = str(ti.xcom_pull(task_ids='check_data_',key='key'))
-    if status == "init":
+    type_ = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    if type_ == "init":
         status = "check_event_description_i_"
     
-    if status == "sync":
+    if type_ == "sync":
         status = "read_event_table_"
     return status
 
@@ -108,20 +126,21 @@ def check_event_description(**kwargs) -> dict:
     df = ti.xcom_pull(key='refine_dataframe')
     type_ = ti.xcom_pull(key='key',task_ids='check_data_')
     BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
-    
-    # 진행중인 행사만 필터링
-    condition1 = df['end_date'] >= BATCH_DATE
-    df = df.loc[condition1]
+
 
     if type_ == "init":
-        # 파싱해온 description (alt 에 작성된 내용)의 길이가 너무 짧은 row 필터링(event 전용)
+        # init 의 경우 날짜 필터링이 아직 진행되지 않음, row number 유지를 위해 해당 단계에서 필터링
+        condition1 = df['end_date'] >= BATCH_DATE
+        df = df.loc[condition1]
+
         # 정보없는 페이지 필터링
-        # 모든 내용 요약으로 변경!
         condition2 = df['event_description'] != '정보없음'
         df = df[condition2]
-        target_df = df
-        for _,row in target_df.iterrows():
+
+        # 요약할 행사정보의 rownumber, homepage 키벨류쌍 저장
+        for _,row in df.iterrows():
             target_dict[row['event_id']] = row['homepage']
+
         print("summary_ai 이후 dataframe과 비교하세요 :", len(df))
         ti.xcom_push(key="research_dict",value=target_dict)
     
@@ -133,8 +152,9 @@ def check_event_description(**kwargs) -> dict:
         # refine_dataframe에 해당 요약 요청 row 만 추가한다
         for _,row in new_parsing_row.iterrows():
             target_dict[row['event_id']] = row['homepage']
+            print("[info log] new homepage :",row['homepage'])
         
-        print("summary_ai 이후 dataframe과 비교하세요. :",len(df))
+        print("sync 테이블에 저장될 로우수:",len(df))
         ti.xcom_push(key="research_dict",value=target_dict)
 
     print("let`s start re_search")

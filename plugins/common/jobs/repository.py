@@ -284,7 +284,7 @@ class postgreSQL():
     
     def save_to_weather_table(self,**kwargs):
         from sqlalchemy import create_engine
-        from sqlalchemy import String ,DateTime,String
+        from sqlalchemy import String ,DateTime,String,BigInteger
         print("--------save task is running--------")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
@@ -297,10 +297,11 @@ class postgreSQL():
             if_exists='replace',
             index=False,
             dtype={
-                'date':DateTime,
+                'id':BigInteger,
+                'fcst_date':DateTime,
                 'time':String,
                 'gu':String,
-                'weatherStatus':String
+                'weather_status':String
             }
         )
         print("save task done!")
