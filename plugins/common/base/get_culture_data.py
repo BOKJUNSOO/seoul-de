@@ -68,15 +68,18 @@ def parse_html(html_page_url,page)->str:
     # 둘다 None 타입인 경우
     else:
         return "정보없음"
-sync_table=[]
+# sync_table=[]
 # def make_sync_table(api_key:str,**kwargs):
+#     import requests
+#     import pandas as pd
+#     import time
 #     """
 #     event_sync table을 생성한다.
-#     event table과 비교했을때, event table에 존재하지 않는 row를 추가할 수 있다.
+#     event table과 비교했을때, event table에 존재하지 않는 row를 추가할 수 있다
+#     모든 정보를 수집하지만, parsing을 해당 task에서 진행하지 않아 init task 보다는 빠르게 진행 가능하다.
 
 #     args:
-#         api_key : 서울 공공데이터 api키
-
+#         api_key : 서울 공공데이터 api
 #     push key:
 #         row_dataframe
 #         - sync 테이블은 처음 호출로 생성시 event_description이 없다.
@@ -89,17 +92,14 @@ sync_table=[]
 #         url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/1/1"
 #         first_response = requests.get(url, timeout=5)
 #         first_response.raise_for_status()
-
 #         json_data = first_response.json()
-#         sync_table.extend(json_data['culturalEventInfo']['row'])
-        
+#         sync_table.extend(json_data['culturalEventInfo']['row'])      
 #         # 요청page수
 #         end_page = json_data['culturalEventInfo']['list_total_count']
 #         print(f"전체 데이터 건수: {end_page}")
 #         print(f"수집 데이터 건수: {end_page}")
 #     except requests.exceptions.RequestException as e:
-#         print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")
-    
+#         print("api_key를 확인해주세요. 혹은 API SERVER 자체 오류입니다.")  
 #     # 페이지 수 만큼 api 요청
 #     for page in range(2, end_page+1):
 #         if page % 20 == 0:
@@ -109,17 +109,14 @@ sync_table=[]
 #                 url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/{page}/{page}"
 #                 response = requests.get(url, timeout=5)
 #                 if response.status_code == 200:
-
 #                     json_data = response.json()
 #                     sync_table.extend(json_data['culturalEventInfo']['row'])
 #                     break
-
 #             except requests.exceptions.RequestException as e:
 #                 print(f"[예외 발생] 페이지 {page} - {e}")
 #                 print(f"10초후 재시도 합니다 재요청 횟수 : {retry}/4")
 #                 time.sleep(10)
 #                 continue
-
 #     # json to table
 #     df = pd.DataFrame(sync_table)
 #     print(f"최종 수집 건수: {len(df)}")
