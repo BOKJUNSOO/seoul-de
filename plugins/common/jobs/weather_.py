@@ -16,12 +16,17 @@ def refine_weather_table(**kwargs):
     df = df.loc[df['weatherStatus'] != "plain"]
     df = df[['fcstDate','fcstTime','gu','weatherStatus']]
 
+    df['ROW_NUMBER'] = range(1,len(df)+1)
+    
+    # select 
+    df = df[['ROW_NUMBER','fcstDate','fcstTime','gu','weatherStatus']]
     # rename task
     df = df.rename(columns={
-        'fcstData':'date',
+        'ROW_NUMBER':'id',
+        'fcstDate':'fcst_date',
         'fcstTime':'time',
         'gu':'gu',
-        'weatherStatus':'weatherStatus'
+        'weatherStatus':'weather_status'
     })
 
     ti.xcom_push(key='refine_dataframe',value=df)
