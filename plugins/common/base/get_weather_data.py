@@ -66,5 +66,5 @@ def get_data(api_key:str,**kwargs):
                 continue
         
     df = pd.DataFrame(result_list) # 사용할 data는 refine task
-    print(df)
+    print("[xcom_push] key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe',value=df)

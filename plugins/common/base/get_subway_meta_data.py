@@ -59,4 +59,5 @@ def get_data(api_key:str,**kwargs):
     print(df)
     # task instance
     ti = kwargs['ti']
+    print("[xcom_push] key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe',value=df)
