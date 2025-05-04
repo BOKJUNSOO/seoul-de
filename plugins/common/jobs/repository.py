@@ -310,7 +310,7 @@ class postgreSQL():
     
     def save_to_weather_table(self,**kwargs):
         from sqlalchemy import create_engine
-        from sqlalchemy import String ,DateTime,String,BigInteger
+        from sqlalchemy import String ,DateTime,String,BigInteger, Integer
         
         print("[INFO] now save to weather table..")
         
@@ -332,7 +332,8 @@ class postgreSQL():
                 'fcst_date':DateTime,
                 'time':String,
                 'gu':String,
-                'weather_status':String
+                'weather_status':String,
+                'temperture':Integer
             }
         )
         print("[INFO] save task is done ! check your RDBMS..")
