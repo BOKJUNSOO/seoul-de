@@ -1,4 +1,5 @@
 def refine_weather_table(**kwargs):
+    import pandas as pd
     """
     xcom_pull:
         - row_dataframe : api 호출을 끝내고 가져온 dataframe
@@ -8,28 +9,35 @@ def refine_weather_table(**kwargs):
     """
     ti = kwargs['ti']
     df = ti.xcom_pull(key='row_dataframe')
+
     df = df[['fcstDate','fcstTime','gu','category','fcstValue']]
 
+    # mkae temperture df
+    temp_df = df[df['category'] == 'T1H'][['fcstDate','fcstTime','gu','fcstValue']]
+    temp_df = temp_df.rename(columns={'fcstValue':'temperture'})
+
     # make weather status
-    df['weatherStatus'] = df.apply(assign_weather_status, axis=1)
+    weather_df = df[df['category'].isin(['SKY', 'PTY', 'LGT'])].copy()
+    weather_df['weatherStatus'] = weather_df.apply(assign_weather_status, axis=1)
+    weather_df = weather_df[weather_df['weatherStatus'] != "plain"]
 
-    df = df.loc[df['weatherStatus'] != "plain"]
-    df = df[['fcstDate','fcstTime','gu','weatherStatus']]
-
-    df['ROW_NUMBER'] = range(1,len(df)+1)
+    # make row number
+    merged_df = pd.merge(weather_df, temp_df, on=['fcstDate','fcstTime','gu'], how='left')
+    merged_df['ROW_NUMBER'] = range(1,len(merged_df)+1)
     
     # select 
-    df = df[['ROW_NUMBER','fcstDate','fcstTime','gu','weatherStatus']]
+    merged_df = merged_df[['ROW_NUMBER','fcstDate','fcstTime','gu','weatherStatus','temperture']]
     # rename task
-    df = df.rename(columns={
+    merged_df = merged_df.rename(columns={
         'ROW_NUMBER':'id',
         'fcstDate':'fcst_date',
         'fcstTime':'time',
         'gu':'gu',
-        'weatherStatus':'weather_status'
+        'weatherStatus':'weather_status',
+        'temperture':'temperture'
     })
-
-    ti.xcom_push(key='refine_dataframe',value=df)
+    
+    ti.xcom_push(key='refine_dataframe',value=merged_df)
 
 def make_grid(**kwargs):
     import pandas as pd
