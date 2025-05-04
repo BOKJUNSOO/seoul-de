@@ -18,12 +18,14 @@ def event_data(**kwargs):
         push key : refine_dataframe
     """
 
-    print("start refine task!")
+    print("[INFO] this task is rename columns or refine data for service")
     ti = kwargs['ti']
     # pull task instance
     df = ti.xcom_pull(key='row_dataframe')
     BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
     type_ = ti.xcom_pull(key='key')
+    print("[xcom_pull] key : row_dataframe, value : dataframe")
+    print(f"[xcom_pull] key : key, value : {type_}")
 
     # refine
     df["BOOL_FEE"] = df["IS_FREE"].map({'유료':False,
@@ -38,6 +40,7 @@ def event_data(**kwargs):
     # sync type 이라면 끝나지 않은 행사만 필터링
     # row number 할당 이전에 처리
     if type_=='sync':
+        print("[INFO] sync table`s date is filtering")
         condition1 = df['END_DATE'] >= BATCH_DATE
         df = df.loc[condition1]
     
@@ -73,7 +76,8 @@ def event_data(**kwargs):
     })
     
     ti.xcom_push(key='refine_dataframe',value=df)
-    print("refine task done!")
+    print("[xcom_pull] key : refine_dataframe, value : dataframe")
+    print("[INFO] refine task done!")
 
 # check_daily_ task 의 값을 결정하는 함수
 def check_daily(**kwargs):
@@ -93,11 +97,17 @@ def check_daily(**kwargs):
     """
     ti = kwargs['ti']
     type_ = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    print("[INFO] this task is branch task")
+    print(f"[xcom_pull] key : key, value : {type_}")
+    
     if type_ == "init":
         status = "check_event_description_i_"
     
     if type_ == "sync":
         status = "read_event_table_"
+    
+    print(f"[return] value : {status}")
+    print("[INFO] check task done!")
     return status
 
 def check_event_description(**kwargs) -> dict:
@@ -126,7 +136,11 @@ def check_event_description(**kwargs) -> dict:
     df = ti.xcom_pull(key='refine_dataframe')
     type_ = ti.xcom_pull(key='key',task_ids='check_data_')
     BATCH_DATE = datetime.strptime(kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d"), "%Y-%m-%d").date()
-
+    
+    print("[INFO] check new event task")
+    print("[INFO] this task can filtering event table that need summary with return dictionary")
+    print(f"[xcom_pull] key : key, value : {type_}")
+    print(f"[xcom_pull] key : refine_dataframe, value : dataframe")
 
     if type_ == "init":
         # init 의 경우 날짜 필터링이 아직 진행되지 않음, row number 유지를 위해 해당 단계에서 필터링
@@ -141,8 +155,10 @@ def check_event_description(**kwargs) -> dict:
         for _,row in df.iterrows():
             target_dict[row['event_id']] = row['homepage']
 
-        print("summary_ai 이후 dataframe과 비교하세요 :", len(df))
+        print(f"[INFO] init table`s row : {len(df)}")
+        print(f"[xcom_pull] key : research_dict, value : dictionary")
         ti.xcom_push(key="research_dict",value=target_dict)
+
     
     if type_ == "sync":
         event_df = ti.xcom_pull(key="event")
@@ -154,10 +170,12 @@ def check_event_description(**kwargs) -> dict:
             target_dict[row['event_id']] = row['homepage']
             print("[info log] new homepage :",row['homepage'])
         
-        print("sync 테이블에 저장될 로우수:",len(df))
+        print(f"[INFO] sync table`s row : {len(df)}")
+        print(f"[INFO] today`s new event count : {len(new_parsing_row)}")
+        print(f"[xcom_push] key : research_dict, value : dictionary")
         ti.xcom_push(key="research_dict",value=target_dict)
 
-    print("let`s start re_search")
+    print("[INFO] check event description task is done!")
 
 def re_search_function(**kwargs)->dict:
     import requests
@@ -173,7 +191,12 @@ def re_search_function(**kwargs)->dict:
     return : 
         push key : html_dict - ai에게 요약을 요청할 html 문서값과 로우넘버의 벨류쌍
     """
+
+    print("[INFO] research task is now running")
+    print("[INFO] this task is make request for event page and parsing string")
+
     ti = kwargs['ti']
+    print(f"[xcom_pull] key : research_dict, value : dictionary")
     research_dict = ti.xcom_pull(key="research_dict")
     parsing_dict={}
     for event_id, url in research_dict.items():
@@ -199,16 +222,19 @@ def re_search_function(**kwargs)->dict:
                 parsing_dict[event_id] = answer
                 break
             except requests.exceptions.RequestException as e:
-                print(f"[예외발생] {e}, 10초뒤 요청을 다시 합니다{retry}/4.")
+                print(f"[ERROR] event-seoul server error{e}, Retry for four times before 10 seconds.{retry}/4.")
                 time.sleep(10)
                 continue
-    print("xcom에서 ai에게 요약 요청할 정보를 확인할 수 있습니다.")
-    print("ai에게 요약 요청할 row의 갯수 :",len(parsing_dict))
+    print("[INFO] you can check for row information with xcom tab.")
+    print(f"[INFO] request row count for AI : {len(parsing_dict)}.")
+    print(f"[xcom_push] key : html_dict, value : dictionary")
     ti.xcom_push(key='html_dict',value=parsing_dict)
+    print("[INFO] research task is done!")
 
 
 def make_summary_ai(OPEN_AI_KEY,**kwargs):
     import openai
+    import time
     """
     requesets를 통해 AI에게 요약을 부탁할 문자열을 파싱해오는 함수
     culture content의 span에 존재하는 문자열, alt에 붙어있는 설명을 모두 가져온다.
@@ -223,11 +249,20 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
     return : 
         push key : to_save_data - 최종 저장소에 저장하게 되는 인스턴스
     """
+
+    print("[INFO] make summary task is running")
+    print("[INFO] this task is make request for OpenAI and make summary")
+
     # gpt 인스턴스 생성
+    
     openai_client = openai.OpenAI(api_key=OPEN_AI_KEY)
+    
     ti = kwargs['ti']
     result_dict = ti.xcom_pull(key="html_dict")
     df = ti.xcom_pull(key="refine_dataframe")
+    print(f"[xcom_pull] key : html_dict, value : dictionary")
+    print(f"[xcom_pull] key : refine_dataframe, value : dataframe")
+    
     # 모아온 html을 차례대로 요청 및 예외처리
     for idx, text in result_dict.items():   
         prompt = f"""
@@ -252,10 +287,11 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
                 )
                 answer = response.choices[0].message.content
                 result_dict[idx] = answer
-                print(f"AI 요약 결과입니다 {idx}:{answer}")
+                print(f"[INFO] AI summary result {idx}:{answer}")
                 break
             except Exception as e:
-                print(f"OPEN AI 요청 에러 발생:{e} 10초뒤 재시도 합니다.{retry}/4")
+                print(f"[ERROR] OPEN AI api server error{e}. Retry for four times before 10 seconds.{retry}/4. ")
+                time.sleep(10)
                 continue
     
     # 기존 데이터 프레임에 description 대치!
@@ -264,8 +300,11 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
 
         if str(event_id) in result_dict: # result_dict key : string type
             df.loc[df['event_id'] == event_id,'event_description'] = result_dict[str(event_id)]
-    print("description 단계의 테이블과 비교하세요.:",len(df))
+    
     ti.xcom_push(key="to_save_data",value=df)
+    print(f"[INFO] compare with description task`s table row. : {len(df)}")
+    print(f"[xcom_push] key : to_save_data, value : dataframe")
+    print("[INFO] summary task is done!")
 
 # check_status_ task 의 값을 결정하는 함수
 def check_status(**kwargs):
@@ -282,16 +321,20 @@ def check_status(**kwargs):
             - 다음 테스크를 결정해준다.
             - save_to_event_ 혹은 save_to_sync task 둘중 하나의 값을 가진다.
     """
+    
     ti = kwargs['ti']
-    status = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    type_ = str(ti.xcom_pull(task_ids='check_data_',key='key'))
+    print("[INFO] this task is branch task")
+    print(f"[xcom_pull] key : key, value : {type_}")
     
-    
-    if status == 'init':
+    if type_ == 'init':
         status = 'save_to_event_'
         
-    if status == 'sync':
+    if type_ == 'sync':
         status = 'save_to_sync_'
-        
+    
+    print(f"[return] value : {status}")
+    print("[INFO] check task done!")
     return status
 
 def check_diff(df,event_df):
