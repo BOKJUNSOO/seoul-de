@@ -50,5 +50,6 @@ def get_data(api_key,**kwargs):
     print(f'최종 수집 건수:{len(df)}')
     
     ti = kwargs['ti']
+    print("[xcom_push] key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe',value=df)
 
