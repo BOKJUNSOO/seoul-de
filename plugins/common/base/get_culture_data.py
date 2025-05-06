@@ -109,7 +109,7 @@ def get_data(api_key:str,**kwargs):
         
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
-        end_page = 1
+        
         print(f"[INFO] request data amount : {end_page}")
 
     except requests.exceptions.RequestException as e:
