@@ -55,7 +55,6 @@ def get_data(api_key:str,**kwargs):
                 for item in data:
                     item['gu'] = gu
                 result_list.extend(data)
-                print(data)
                 break
 
             except requests.exceptions.RequestException as e:
