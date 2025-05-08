@@ -51,7 +51,7 @@ def parse_html(html_page_url,page)->str:
             # 공백이 아닌 문자열을 선택
             if len(alt_text1.strip()) > 0:
                 alt_text = alt_text1
-                print(f"[type2] {page} 존재하는 내용으로 가져왔어요:",alt_text)
+                print(f"[INFO] - {page} 존재하는 내용으로 가져왔어요:",alt_text)
                 return alt_text
             # alt_text1 == None이 아니고 alt_text1의 길이가 0인경우(공백)
             else:
@@ -60,7 +60,7 @@ def parse_html(html_page_url,page)->str:
         elif alt_text2 != None: # alt_text1은 무조건 None인 경우
             if len(alt_text2.strip()) > 0:
                 alt_text = alt_text2
-                print(f"[type2] {page} 존재하는 내용으로 가져왔어요:",alt_text)
+                print(f"[INFO] - {page} 존재하는 내용으로 가져왔어요:",alt_text)
                 return alt_text
             # alt_text2 == None이 아니고 alt_text2의 길이가 0인경우(공백)
             else:
@@ -87,9 +87,9 @@ def get_data(api_key:str,**kwargs):
         - 단순히 호출된 데이터 이므로 row_dataframe으로 정의한다.
     """
     BATCH_DATE = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
-    print("[INFO] get data from seoul open api")
-    print("[INFO] data source - seoul event data")
-    print(f"[INFO] Batch date - {BATCH_DATE}")
+    print("[INFO] - get data from seoul open api")
+    print("[INFO] - data source - seoul event data")
+    print(f"[INFO] - Batch date - {BATCH_DATE}")
     
 
     try:
@@ -109,16 +109,15 @@ def get_data(api_key:str,**kwargs):
         
         # 요청page수
         end_page = json_data['culturalEventInfo']['list_total_count']
-        
-        print(f"[INFO] request data amount : {end_page}")
+        print(f"[INFO] - request data amount : {end_page}")
 
     except requests.exceptions.RequestException as e:
-        print("[ERROR] check your seoul api key or check OPEN API server..")
+        print("[EXCEPTION] - check your seoul api key or check OPEN API server..")
     
     # 페이지 수 만큼 api 요청
     for page in range(2, end_page+1):
         if page % 20 == 0:
-            print(f"[INFO] now request page : {page}/{end_page}.")
+            print(f"[INFO] - now request page : {page}/{end_page}.")
         for retry in range(1,4):
             try:
                 url = f"http://openapi.seoul.go.kr:8088/{api_key}/json/culturalEventInfo/{page}/{page}"
@@ -131,20 +130,20 @@ def get_data(api_key:str,**kwargs):
                     description_str = parse_html(address,page)
                     data[0]['ALT'] = description_str
                     if description_str == '정보없음':
-                        print(f"[type3] {page} 페이지의 상세정보를 Parsing 하는데 실패했습니다. event_sync 테이블 확인요망.")
+                        print(f"[EXCEPTION] - {page} 페이지의 상세정보를 Parsing 하는데 실패했습니다. event_sync 테이블 확인요망.")
                     result_list.extend(data)
                     break
 
             except requests.exceptions.RequestException as e:
-                print(f"[ERROR] make error in this page: {page} - {e}")
-                print(f"[ERROR] retry for four more times after 10 seconds .{retry}/4")
+                print(f"[EXCEPTION] - make error in this page: {page} - {e}")
+                print(f"[catch] - retry for four more times after 10 seconds .{retry}/4")
                 time.sleep(10)
                 continue
 
     # json to table
     df = pd.DataFrame(result_list)
-    print(f"[INFO] row_dataframe`s row: {len(df)}")
+    print(f"[INFO] - row_dataframe`s row: {len(df)}")
     # task instance
     ti = kwargs['ti']
-    print("[xcom_push] key : row_dataframe, value : dataframe")
+    print("[INFO] - xcom_push - key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe', value=df)

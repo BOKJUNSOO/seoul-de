@@ -7,6 +7,7 @@ def refine_weather_table(**kwargs):
     xcom_push
         - refine_data : weather Status와 필요한 데이터만 필터링된 데이터 프레임
     """
+    print("[INFO] - now refine weather data")
     ti = kwargs['ti']
     df = ti.xcom_pull(key='row_dataframe')
 
@@ -36,7 +37,8 @@ def refine_weather_table(**kwargs):
         'weatherStatus':'weather_status',
         'temperture':'temperture'
     })
-    
+    print("[INFO] - xcom_push - key:refine_dataframe")
+    print("[INFO] - refine task is done!")
     ti.xcom_push(key='refine_dataframe',value=merged_df)
 
 def make_grid(**kwargs):
@@ -48,6 +50,7 @@ def make_grid(**kwargs):
         - grids
             - 직접 작성한 grid 인스턴스를 push
     """
+    print("[INFO] - now makeing grid templete")
     ti = kwargs['ti']
     grids = [
     ("강남구", 61, 126),
@@ -77,6 +80,8 @@ def make_grid(**kwargs):
     ("중랑구", 62, 128),
     ]
     grids = pd.DataFrame(grids, columns=["gu", "nx", "ny"])
+    print("[INFO] - make grids done")
+    print("[INFO] - xcom_push - key:grids")
     ti.xcom_push(key='grids',value=grids)
 
 def assign_weather_status(row):
