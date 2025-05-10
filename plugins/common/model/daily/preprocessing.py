@@ -14,6 +14,10 @@ def modeling(**kwargs):
     ti = kwargs['ti']
     df_daily = ti.xcom_pull(key='subway_data_prev_month')
     df_new_daily = ti.xcom_pull(key='subway_data_daily')
+    print("[INFO] - daily modeling task is now running..(total usage)")
+    print("[INFO] - this is preprocessing")
+    print("[INFO] - xcom_pull - key : subway_data_prev_month")
+    print("[INFO] - xcom_pull - key : subway_data_daily")
 
     df = pd.concat([df_daily, df_new_daily], ignore_index=True).drop_duplicates(
         subset=['service_date','line','name']
@@ -52,10 +56,12 @@ def modeling(**kwargs):
     model_b64 = base64.b64encode(model_serialized).decode('utf-8')
 
     y_pred = model.predict(X_TEST)
-
+    print("[INFO] - today`s model score :" + str(r2_score(Y_TEST,y_pred)) + "/1")
+    print("[INFO] - xcom_push - key : trained_dataset")
+    print("[INFO] - xcom_push - key : ML_encoders")
+    print("[INFO] - xcom_push - key : ML_model")
     ti.xcom_push(key='trained_dataset',value=df)
     ti.xcom_push(key='ML_encoders', value=pickled_encoders)
     ti.xcom_push(key='ML_model',value=model_b64)
 
-    print("today`s model score :" + str(r2_score(Y_TEST,y_pred)) + "/1")
     

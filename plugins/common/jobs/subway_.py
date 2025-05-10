@@ -9,7 +9,7 @@ def subwaystation_data(**kwargs):
     airflow task instance에서 dataframe을 pull 하여 정제한다.
     schema에 맞게(컬럼명 조정) 정제한 테이블을 task instance에 push 한다..
     """
-    print("start refine task!")
+    print("[INFO] - start refine task!")
     ti = kwargs['ti']
     # pull task instance
     df = ti.xcom_pull(key='row_dataframe')
@@ -25,7 +25,7 @@ def subwaystation_data(**kwargs):
     df = refine_subway_name_data(df)
     
     ti.xcom_push(key='refine_dataframe',value=df)
-    print("refine task done!")
+    print("[INFO] - refine task done!")
     
 def subwaystation_montly_data(**kwargs):
     import pandas as pd
@@ -36,14 +36,13 @@ def subwaystation_montly_data(**kwargs):
     xcom_pull : row_dataframe
     xcom_pust : refine_dataframe
     """
-    print("start refine task!")
+    print("[INFO] - start refine task!")
     ti = kwargs['ti']
     # pull task instance
     df = ti.xcom_pull(key='row_dataframe')
 
     # 시간대 컬럼 리스트 추출
     hourly_on_off_columns = [col for col in df.columns if col.startswith('HR_')]
-    print(hourly_on_off_columns)
     
     # melt
     feature_table_melted = pd.melt(
@@ -88,7 +87,7 @@ def subwaystation_montly_data(**kwargs):
     feature_table_grouped['total'] = feature_table_grouped['get_on'] + feature_table_grouped['get_off']
 
     ti.xcom_push(key='refine_dataframe',value=feature_table_grouped)
-    print("refine task done!")
+    print("[INFO] - refine task done!")
 
 
 def subwaystation_daily_data(**kwargs):
@@ -99,7 +98,7 @@ def subwaystation_daily_data(**kwargs):
     xcom_pull : row_dataframe
     xcom_push : refine_dataframe
     """
-    print("start refine task!")
+    print("[INFO] - start refine task!")
     ti = kwargs['ti']
     # pull task instance
     df = ti.xcom_pull(key='row_dataframe')
@@ -113,7 +112,7 @@ def subwaystation_daily_data(**kwargs):
     df = df.drop(columns='REG_YMD')
     df = refine_subway_name_data(df)
     ti.xcom_push(key='refine_dataframe',value=df)
-    print("refine task done!")
+    print("[INFO] - refine task done!")
 
 def subwaystation_prediction_hourly_data(**kwargs):
     from common.base.util.helper import refine_subway_name_data
@@ -123,7 +122,7 @@ def subwaystation_prediction_hourly_data(**kwargs):
     xcom_pull : row_dataframe
     xcom_pust : refine_dataframe
     """
-    print("start refine task!")
+    print("[INFO] - start refine task!")
     ti = kwargs['ti']
     df = ti.xcom_pull(key='row_dataframe')
     #

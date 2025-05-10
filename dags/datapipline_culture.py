@@ -108,7 +108,7 @@ with DAG (
             INSERT INTO datawarehouse.batch_status (batch_id, execute_time, status)
             SELECT
                 COALESCE(MAX(batch_id), 0) + 1,
-                '{{ execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d") }}'::date,
+                '{{ execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d %H:%M") }}'::timestamp,
                 0
             FROM datawarehouse.batch_status;
             """

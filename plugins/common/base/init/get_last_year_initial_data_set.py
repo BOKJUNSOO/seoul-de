@@ -15,7 +15,7 @@ def get_data(api_key:str,**kwargs):
     target_year_month = get_last_year_months(BATCH_YEAR)
 
     for ym in target_year_month:
-        print(f"{ym} 일자의 데이터를 요청합니다.")
+        print(f"[INFO] - {ym} 일자의 데이터를 요청합니다.")
         try:
             url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayTime/1/1/{ym}'
             first_response=requests.get(url)
@@ -25,13 +25,13 @@ def get_data(api_key:str,**kwargs):
             result_list.extend(json_data['CardSubwayTime']['row'])
 
             end_page=json_data['CardSubwayTime']['list_total_count']
-            print(f'전체 데이터 건수:{end_page}, 이는 해당 월의 수집된 역사 갯수와 동일합니다.')
+            print(f'[INFO] - 전체 데이터 건수:{end_page}, 이는 해당 월의 수집된 역사 갯수와 동일합니다.')
         except requests.exceptions.RequestException as e:
-            print(f"api_key를 확인해주세요. 혹은 API SERVER 오류입니다.")
+            print(f"[EXCEPTION] - api_key를 확인해주세요. 혹은 API SERVER 오류입니다.")
         
         for page in range(2,end_page+1):
             if page % 20 ==0:
-                print(f"{page}/{end_page} 를 호출중입니다.")
+                print(f"[INFO] - {page}/{end_page} 를 호출중입니다.")
             for retry in range(1,4):
                 try:
                     url = f'http://openapi.seoul.go.kr:8088/{api_key}/json/CardSubwayTime/{page}/{page}/{ym}'
@@ -43,12 +43,13 @@ def get_data(api_key:str,**kwargs):
                         break
 
                 except requests.exceptions.RequestException as e:
-                    print(f"[예외 발생] 페이지 {page} - {e}")
-                    print(f"10초후 재시도 합니다 재요청 횟수 : {retry}/4")
+                    print(f"[EXCEPTION] - 페이지 {page} - {e}")
+                    print(f"[CATCH] - 10초후 재시도 합니다 재요청 횟수 : {retry}/4")
                     time.sleep(10)
                     continue
     df = pd.DataFrame(result_list)
-    print(f"최종 수집 건수:{len(df)}")
+    print(f"[INFO] - 최종 수집 건수:{len(df)}")
 
     ti = kwargs['ti']
+    print("[INFO] - xcom_push - key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe',value=df)

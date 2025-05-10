@@ -1,4 +1,5 @@
 def refine_weather_table(**kwargs):
+    import pandas as pd
     """
     xcom_pull:
         - row_dataframe : api 호출을 끝내고 가져온 dataframe
@@ -6,30 +7,39 @@ def refine_weather_table(**kwargs):
     xcom_push
         - refine_data : weather Status와 필요한 데이터만 필터링된 데이터 프레임
     """
+    print("[INFO] - now refine weather data")
     ti = kwargs['ti']
     df = ti.xcom_pull(key='row_dataframe')
+
     df = df[['fcstDate','fcstTime','gu','category','fcstValue']]
 
+    # mkae temperture df
+    temp_df = df[df['category'] == 'T1H'][['fcstDate','fcstTime','gu','fcstValue']]
+    temp_df = temp_df.rename(columns={'fcstValue':'temperture'})
+
     # make weather status
-    df['weatherStatus'] = df.apply(assign_weather_status, axis=1)
+    weather_df = df[df['category'].isin(['SKY', 'PTY', 'LGT'])].copy()
+    weather_df['weatherStatus'] = weather_df.apply(assign_weather_status, axis=1)
+    weather_df = weather_df[weather_df['weatherStatus'] != "plain"]
 
-    df = df.loc[df['weatherStatus'] != "plain"]
-    df = df[['fcstDate','fcstTime','gu','weatherStatus']]
-
-    df['ROW_NUMBER'] = range(1,len(df)+1)
+    # make row number
+    merged_df = pd.merge(weather_df, temp_df, on=['fcstDate','fcstTime','gu'], how='left')
+    merged_df['ROW_NUMBER'] = range(1,len(merged_df)+1)
     
     # select 
-    df = df[['ROW_NUMBER','fcstDate','fcstTime','gu','weatherStatus']]
+    merged_df = merged_df[['ROW_NUMBER','fcstDate','fcstTime','gu','weatherStatus','temperture']]
     # rename task
-    df = df.rename(columns={
+    merged_df = merged_df.rename(columns={
         'ROW_NUMBER':'id',
         'fcstDate':'fcst_date',
         'fcstTime':'time',
         'gu':'gu',
-        'weatherStatus':'weather_status'
+        'weatherStatus':'weather_status',
+        'temperture':'temperture'
     })
-
-    ti.xcom_push(key='refine_dataframe',value=df)
+    print("[INFO] - xcom_push - key:refine_dataframe")
+    print("[INFO] - refine task is done!")
+    ti.xcom_push(key='refine_dataframe',value=merged_df)
 
 def make_grid(**kwargs):
     import pandas as pd
@@ -40,6 +50,7 @@ def make_grid(**kwargs):
         - grids
             - 직접 작성한 grid 인스턴스를 push
     """
+    print("[INFO] - now makeing grid templete")
     ti = kwargs['ti']
     grids = [
     ("강남구", 61, 126),
@@ -69,6 +80,8 @@ def make_grid(**kwargs):
     ("중랑구", 62, 128),
     ]
     grids = pd.DataFrame(grids, columns=["gu", "nx", "ny"])
+    print("[INFO] - make grids done")
+    print("[INFO] - xcom_push - key:grids")
     ti.xcom_push(key='grids',value=grids)
 
 def assign_weather_status(row):

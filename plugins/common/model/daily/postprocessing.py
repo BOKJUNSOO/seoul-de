@@ -18,13 +18,19 @@ def predict_all_for_date(**kwargs)->pd.DataFrame:
     date_str = kwargs["data_interval_end"].in_timezone("Asia/Seoul").strftime("%Y-%m-%d")
 
     ti = kwargs['ti']
+    print("[INFO] - daily modeling task is now running..(total prediction! with model..)")
+    print("[INFO] - this is postprocessing")
+    
     df = ti.xcom_pull(key='trained_dataset')
+    print("[INFO] - xcom_pull - key: trained_dataset")
     
     pickled_encoders = ti.xcom_pull(key='ML_encoders')
+    print("[INFO] - xcom_pull - key: ML_encoders")
+    
     encoders = pickle.loads(base64.b64decode(pickled_encoders.encode()))
-    print(encoders['line'].classes_)
     # refact model
     model_64 = ti.xcom_pull(key='ML_model')
+    print("[INFO] - xcom_pull - key: ML_model")
     model = pickle.loads(base64.b64decode(model_64))
         
     decoded_df = decode_unique_line_name(df, encoders)
@@ -42,7 +48,7 @@ def predict_all_for_date(**kwargs)->pd.DataFrame:
     # daily output
     result = with_date[['date', 'line_str', 'name_str', 'predicted_get_on_d']]
     result = result.rename(columns={'line_str': 'line', 'name_str': 'name'})
-
+    print("[INFO] - xcom_push - key: daily_dataframe")
     ti.xcom_push(key='daily_dataframe', value=result)
 
 def decode_unique_line_name(df, encoders_info):
@@ -59,7 +65,6 @@ def decode_unique_line_name(df, encoders_info):
     
     # 고유한 인코딩된 조합 추출
     unique_df = df[['line', 'name']].drop_duplicates().copy()
-    print("encoder line",encoders_info['line'])
     # 디코딩
     unique_df['line_str'] = encoders_info['line'].inverse_transform(unique_df['line'])
     unique_df['name_str'] = encoders_info['name'].inverse_transform(unique_df['name'])

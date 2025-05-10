@@ -18,7 +18,7 @@ class postgreSQL():
     # check_database - branchOperator callable function
     def check_table(self,**kwargs):
         import psycopg2
-        print("--------check database is running--------")
+        print("[INFO] - now checking database..")
         ti = kwargs['ti']
         conn_params = {
             "host": self.db_host,
@@ -36,19 +36,19 @@ class postgreSQL():
         # search db, schema
         cur.execute("SELECT current_database(), current_schema();")
         db, schema = cur.fetchone()
-        print(f"연결된 DB: {db}, search_path 스키마: {schema}")
+        print(f"[INFO] - connected database : {db}, search for this schema: {schema}")
 
         # schema list
         cur.execute("SELECT schema_name FROM information_schema.schemata;")
         schemata = [row[0] for row in cur.fetchall()]
-        print("스키마:", schemata)
+        print("[INFO] - this is my schema :", schemata)
         # check 'datawarehouse' schema
         if self.schema not in schemata:
-            raise RuntimeError(f"{self.schema} 스키마를 설정해주세요.")
+            raise RuntimeError(f"[EXCEPTION] - {self.schema} is not set yet check README file and init database..")
         
         # st search_path
-        cur.execute("SET search_path TO datawarehouse;")
-        print("search_path --> datawarehouse 설정.")
+        cur.execute(f"SET search_path TO {self.schema};")
+        print(f"[INFO] - SET search_parth to {self.schema}")
 
         # search table
         cur.execute("""
@@ -58,25 +58,26 @@ class postgreSQL():
             """)
         
         tables = [row[0] for row in cur.fetchall()]
-        print("datawarehouse 스키마의 테이블들:", tables)
+        print(f"[INFO] {self.schema} `s table list :", tables)
         
         # 검사한 테이블(evnet 테이블)이 존재하지 않는 경우
         if table not in tables:
-            print(f"{table}이 존재하지 않습니다.")
-            print(f"{table}을 생성합니다..")
-            print(f'[xcom_push] key : key, value = init')
+            print(f"[INFO] - {table} dose not exist.")
+            print(f"[INFO] - CREATE {table} ..!")
+            print(f'[INFO] - xcom_push - key : key, value : init')
             ti.xcom_push(key="key",value="init")
-        else:
-            print(f"{table}이 존재합니다.")
-            print(f"sync를 생성합니다..")
-            print(f'[xcom_push] key : key, value = sync')
+        
+        if table in tables:
+            print(f"[INFO] - {table} is already exist.")
+            print(f"[INFO] - CREATE sync ..!")
+            print(f'[INFO] - xcom_push - key : key, value : sync')
             ti.xcom_push(key="key",value="sync")
 
     # getter
     def read_table(self,**kwargs):
         import psycopg2
         import pandas as pd
-        print("--------read task is running--------")
+        print("[INFO] - now reading database..")
         
         # needed params for read database
         conn_params = {
@@ -93,25 +94,25 @@ class postgreSQL():
             # connect
             conn = psycopg2.connect(**conn_params)
             cur = conn.cursor()
-            print(f"{self.db_host}에 연결되었습니다.")
+            print(f"[INFO] - connected host : {self.db_host}")
 
             # search db, schema
             cur.execute("SELECT current_database(), current_schema();")
             db, schema = cur.fetchone()
-            print(f"연결된 DB: {db}, search_path 스키마: {schema}")
+            print(f"[INFO] - connected database : {db}, search for this schema: {schema}")
 
             # schema list
             cur.execute("SELECT schema_name FROM information_schema.schemata;")
             schemata = [row[0] for row in cur.fetchall()]
-            print("스키마:", schemata)
+            print("[INFO] - this is my schema :", schemata)
 
             # check 'datawarehouse' schema
             if self.schema not in schemata:
-                raise RuntimeError(f"{self.schema} 스키마를 찾을 수 없습니다.")
+                raise RuntimeError(f"[EXCEPTION] - {self.schema} is not set yet check README file and init database..")
 
             # st search_path
             cur.execute("SET search_path TO datawarehouse;")
-            print("search_path --> datawarehouse 설정.")
+            print(f"[INFO] - SET search_parth to {self.schema}")
 
             # search table
             cur.execute("""
@@ -120,44 +121,50 @@ class postgreSQL():
               WHERE table_schema = 'datawarehouse';
             """)
             tables = [row[0] for row in cur.fetchall()]
-            print("datawarehouse 스키마의 테이블들:", tables)
+            print(f"[INFO] - {self.schema} `s table list :", tables)
 
             if table not in tables:
-                raise RuntimeError(f"{table} 테이블을 찾을 수 없습니다.")
-
+                raise RuntimeError(f"[EXCEPTION] - {table} is delete in airflow runtime.")
+            
             # table 객체 저장
             #colnames = [desc[0] for desc in cur.description]
             df = pd.read_sql_query(f'SELECT * FROM "{table}"', conn)
-            print(f"success for read {table}db!")
+            print(f"[INFO] - success for read {table}!")
             
             
             # 모델에 전달하기 위해 데이터 저장
             ti = kwargs['ti']
             ti.xcom_push(key=f"{table}",value=df)
             ti.xcom_push(key="row_number",value=len(df))
+            print(f'[INFO] - xcom_push - key : {table}, value : dataframe')
+            print(f'[INFO] - xcom_push - key : row_number, value : {len(df)}')
 
         except psycopg2.Error as e:
-            print(f"psycopg2 error: {e}")
+            print(f"[EXCEPTION] - psycopg2 error: {e}")
             raise
         except Exception as ex:
-            print(f"runtime error: {ex}")
+            print(f"[EXCEPTION] - runtime error: {ex}")
         finally:
             if 'cur' in locals():
+                print("[INFO] - finally close executer")
                 cur.close()
             if 'conn' in locals():
+                print("[INFO] - finally close connection")
                 conn.close()
         
-
 
     # setter
     def save_to_event_table(self,**kwargs):
         from sqlalchemy import create_engine
         from sqlalchemy import String ,DateTime, Boolean,Float, Text , BigInteger
-        print("--------save task is running--------")
+        print("[INFO] - now save to event table..")
+        
         ti = kwargs['ti']
         df = ti.xcom_pull(key='to_save_data')
+        print(f'[INFO] - xcom_pull - key : to_save_data, value : dataframe')
         
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        print("[INFO] - create database engine..")
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -180,19 +187,22 @@ class postgreSQL():
                 'image_url':Text,
                 'detail_url':Text,
                 'target_user':String,
-                'event_description':Text,
-                '0': DateTime # only sync table
+                'event_description':Text
             }
         )
-        print("save task done!")
+        print("[INFO] - save task is done ! check your RDBMS..")
         
     def save_to_subway_table(self,**kwargs):
         from sqlalchemy import create_engine
         from sqlalchemy import String ,Float
-        print("--------save task is running--------")
+        print("[INFO] - now save to subway master table..")
+        
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
+        print(f'[INFO] - xcom_pull - key : refine_dataframe, value : dataframe')
+    
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        print("[INFO] - create database engine..")
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -207,15 +217,21 @@ class postgreSQL():
                 'longitude':Float
             }
         )
-        print("save task done!")
+        
+        print("[INFO] - save task is done ! check your RDBMS..")
     
     def save_to_subwayMontly_table(self,**kwargs):
         from sqlalchemy import create_engine
         from sqlalchemy import String ,Integer
-        print("--------save task is running--------")
+        
+        print("[INFO] - now save to subway montly table..")
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
+        print(f'[INFO] - xcom_pull - key : refine_dataframe, value : dataframe')
+        
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        print("[INFO] - create database engine..")
+
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -232,16 +248,22 @@ class postgreSQL():
                 'total':Integer
             }
         )
-        print("save task done!")
+        print("[INFO] - save task is done ! check your RDBMS..")
 
     def save_to_subwayDaily_table(self,**kwargs):
         from sqlalchemy import create_engine
         from sqlalchemy import String ,Integer
-        print("--------save task is running--------")
+        
+        print("[INFO] - now save to subway daily table..")
+        
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
+        print(f'[INFO] - xcom_pull - key : refine_dataframe, value : dataframe')
+    
 
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        print("[INFO] - create database engine..")
+
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -256,16 +278,20 @@ class postgreSQL():
                 'get_off_d':Integer
             }
         )
-        print("save task done!")
+        print("[INFO] - save task is done ! check your RDBMS..")
 
     def save_to_hourly_predict(self,**kwargs):
         from sqlalchemy import create_engine
         from sqlalchemy import String ,DateTime,Integer
-        print("--------save task is running--------")
+        print("[INFO] - now save to subway hourly prediction table..")
+        
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe',task_ids='refine_data')
+        print(f'[INFO] - xcom_pull key : refine_dataframe, value : dataframe')
 
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
+        print("[INFO] - create database engine..")
+        
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -280,16 +306,21 @@ class postgreSQL():
                 'predicted_get_on_d':Integer
             }
         )
-        print("save task done!")
+        print("[INFO] - save task is done ! check your RDBMS..")
     
     def save_to_weather_table(self,**kwargs):
         from sqlalchemy import create_engine
-        from sqlalchemy import String ,DateTime,String,BigInteger
-        print("--------save task is running--------")
+        from sqlalchemy import String ,DateTime,String,BigInteger, Integer
+        
+        print("[INFO] - now save to weather table..")
+        
         ti = kwargs['ti']
         df = ti.xcom_pull(key='refine_dataframe')
+        print(f'[INFO] - xcom_pull - key : refine_dataframe, value : dataframe')
+
         engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
-        
+        print("[INFO] - create database engine..")
+
         df.to_sql(
             name=self.table_name,
             con=engine,
@@ -301,27 +332,8 @@ class postgreSQL():
                 'fcst_date':DateTime,
                 'time':String,
                 'gu':String,
-                'weather_status':String
+                'weather_status':String,
+                'temperture':Integer
             }
         )
-        print("save task done!")
-
-        
-
-
-    # for test!
-    # def save_to_daily_predict(self,**kwargs):
-    #     print("--------save task is running--------")
-    #     ti = kwargs['ti']
-    #     df = ti.xcom_pull(task_ids='make_daily_prediction',key='daily_dataframe')
-
-    #     engine = create_engine(f'postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}')
-    #     df.to_sql(
-    #         name=self.table_name,
-    #         con=engine,
-    #         schema=self.schema,
-    #         if_exists='replace',
-    #         index=False,
-    #     )
-    #     print("save task done!")
-    
+        print("[INFO] - save task is done ! check your RDBMS..")
