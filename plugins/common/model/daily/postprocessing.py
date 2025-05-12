@@ -48,8 +48,8 @@ def predict_all_for_date(**kwargs)->pd.DataFrame:
     # daily output
     result = with_date[['date', 'line_str', 'name_str', 'predicted_get_on_d']]
     result = result.rename(columns={'line_str': 'line', 'name_str': 'name'})
-    print("[INFO] - xcom_push - key: daily_dataframe")
     ti.xcom_push(key='daily_dataframe', value=result)
+    print("[INFO] - xcom_push - key: daily_dataframe")
 
 def decode_unique_line_name(df, encoders_info):
     """

@@ -156,8 +156,8 @@ def check_event_description(**kwargs) -> dict:
             target_dict[row['event_id']] = row['homepage']
 
         print(f"[INFO] - init table`s row : {len(df)}")
-        print(f"[INFO] - xcom_push - key : research_dict, value : dictionary")
         ti.xcom_push(key="research_dict",value=target_dict)
+        print(f"[INFO] - xcom_push - key : research_dict, value : dictionary")
 
     
     if type_ == "sync":
@@ -173,8 +173,8 @@ def check_event_description(**kwargs) -> dict:
         
         print(f"[INFO] - sync table`s row : {len(df)}")
         print(f"[INFO] - today`s new event count : {len(new_parsing_row)}")
-        print(f"[INFO] - xcom_push - key : research_dict, value : dictionary")
         ti.xcom_push(key="research_dict",value=target_dict)
+        print(f"[INFO] - xcom_push - key : research_dict, value : dictionary")
 
     print("[INFO] - check event description task is done!")
 
@@ -229,8 +229,8 @@ def re_search_function(**kwargs)->dict:
                 continue
     print("[INFO] - you can check for row information with xcom tab.")
     print(f"[INFO] - request row count for AI : {len(parsing_dict)}.")
-    print(f"[INFO] - xcom_push - key : html_dict, value : dictionary")
     ti.xcom_push(key='html_dict',value=parsing_dict)
+    print(f"[INFO] - xcom_push - key : html_dict, value : dictionary")
     print("[INFO] - research task is done!")
 
 

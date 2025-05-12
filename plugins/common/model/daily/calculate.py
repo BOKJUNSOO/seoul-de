@@ -38,6 +38,6 @@ def make_hourly_dataframe(**kwargs):
 
     select_col = ['line','name','date','hour','predicted_total']
     merged_df = merged_df[select_col]
-    print("[INFO] - xcom_push - key: row_dataframe")
     print("[INFO] - MLops task is done.")
     ti.xcom_push(key='row_dataframe',value=merged_df)
+    print("[INFO] - xcom_push - key: row_dataframe")

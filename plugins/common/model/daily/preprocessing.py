@@ -57,11 +57,14 @@ def modeling(**kwargs):
 
     y_pred = model.predict(X_TEST)
     print("[INFO] - today`s model score :" + str(r2_score(Y_TEST,y_pred)) + "/1")
-    print("[INFO] - xcom_push - key : trained_dataset")
-    print("[INFO] - xcom_push - key : ML_encoders")
-    print("[INFO] - xcom_push - key : ML_model")
+    
     ti.xcom_push(key='trained_dataset',value=df)
+    print("[INFO] - xcom_push - key : trained_dataset")
+
     ti.xcom_push(key='ML_encoders', value=pickled_encoders)
+    print("[INFO] - xcom_push - key : ML_encoders")
+
     ti.xcom_push(key='ML_model',value=model_b64)
+    print("[INFO] - xcom_push - key : ML_model")
 
     
