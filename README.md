@@ -105,7 +105,7 @@
 [DAG 개발 및 코드의 모듈화](https://velog.io/@junsoobok/2-%EC%BD%94%EB%93%9C%EC%9D%98-%EB%AA%A8%EB%93%88%ED%99%94)
 
 - 백엔드를 맡아주신 팀원과의 소통
-- 코드의 재사용성과 모듈화화
+- 코드의 재사용성과 모듈화
 
 3. 데이터 수집단계, 행사정보 파싱 `(코드 레벨)`\
 [AI 도입기](https://velog.io/@junsoobok/3-HTML-%ED%8C%8C%EC%8B%B1
@@ -138,12 +138,21 @@ AI 도입후!
 
 ## 🔥 MLops - 지하철 사용량 예측!
 
-[작성중..]
-1. 내가 예측하지 않아도 당연히 있을줄 알았다.
 
-2. 모델서빙 (with xcom 직렬화)
+1. 모델링 (데이터 모델링 및 가설설정)
+   
+   [그래서 어떻게 할건가?](https://velog.io/@junsoobok/MLops-%EB%AA%A8%EB%8D%B8%EB%A7%81)
 
-3. 데이터 분석과제 (이거 진짜 되는거임?)
+2. 데이터 분석 및 엔지니어링
+   
+   [그래서 어떻게 했는가?](https://velog.io/@junsoobok/MLops-DAG-%EA%B5%AC%EC%84%B1-%EB%B0%8F-%EA%B5%AC%ED%98%84)
+- 데이터 분석 및 시각화
+- MLops 파이프라인 구성
+
+3. output
+
+<img src='https://github.com/user-attachments/assets/07c4d104-f3a1-4ca0-8d62-184b5da04d21'>
+
 
 
 ## 😎 프로젝트 실행
