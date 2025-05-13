@@ -272,7 +272,7 @@ def make_summary_ai(OPEN_AI_KEY,**kwargs):
         - Please do not add any new information; only use the content provided.  
         - Summarize the content in Korean, within around 1000 characters, with a clear beginning, development, turn, and conclusion.
         - Present the summary in a cheerful and light tone.  
-        - Be sure to use polite (respectful) language.
+        - Be sure to use polite **respectful** language.
 
         {text}
         """
