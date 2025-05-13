@@ -80,6 +80,8 @@
 | 백엔드 | <img src= "https://img.shields.io/badge/Apache%20Airflow-017CEE?style=flat-square&logo=apache-airflow&logoCOlor=auto"> <img src= "https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoCOlor=white"> |
 | 배포 | <img src= "https://img.shields.io/badge/Jenkins-D24939?style=flat-square&logo=jenkins&logoColor=white"> <img src= "https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white"> |
 
+<br>
+
 ## 🏆 Seoul-moa 팀원 깃허브
 
 <table align="center" width="100%">
