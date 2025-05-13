@@ -72,6 +72,8 @@
 <img width="1000" alt="MLopsR2score" src="https://github.com/user-attachments/assets/2f382f76-2466-40c3-9058-0e91ea7f66d0">
 <br>
 
+<br>
+
 ## ⚒️ DE 기술 스택
 | 분류 | 기술 |
 | ---- | ---- |
@@ -181,6 +183,8 @@ AI 도입후!
 금천하모니축제로 함께 어울리고, 내일을 더울리며 즐거운 시간을 보내보세요!
 ```
 
+<br>
+
 ## 🔥 MLops - 지하철 사용량 예측!
 
 
@@ -198,7 +202,7 @@ AI 도입후!
 
 <img src='https://github.com/user-attachments/assets/07c4d104-f3a1-4ca0-8d62-184b5da04d21'>
 
-
+<br>
 
 ## 😎 프로젝트 실행
 
@@ -212,6 +216,8 @@ postgreSQL port : 5432
 git clone https://github.com/BOKJUNSOO/seoul-de.git
 docker compose up --build -d
 ```
+
+<br>
 
 ## 😎 프로젝트 사용시 설정 사항
 
