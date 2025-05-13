@@ -72,7 +72,7 @@
 <img width="1000" alt="MLopsR2score" src="https://github.com/user-attachments/assets/2f382f76-2466-40c3-9058-0e91ea7f66d0">
 <br>
 
-## ⚒️ 기술 스택
+## ⚒️ DE 기술 스택
 | 분류 | 기술 |
 | ---- | ---- |
 | 언어 | <img src= "https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> |
@@ -80,7 +80,49 @@
 | 백엔드 | <img src= "https://img.shields.io/badge/Apache%20Airflow-017CEE?style=flat-square&logo=apache-airflow&logoCOlor=auto"> <img src= "https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoCOlor=white"> |
 | 배포 | <img src= "https://img.shields.io/badge/Jenkins-D24939?style=flat-square&logo=jenkins&logoColor=white"> <img src= "https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white"> |
 
+## 🏆 Seoul-moa 팀원 깃허브
 
+<table align="center" width="100%">
+  <tr>
+    <td><img src="https://avatars.githubusercontent.com/u/68840464?v=4"/></td>
+    <td><img src="https://avatars.githubusercontent.com/u/102515499?v=4"/></td>
+    <td><img src="https://avatars.githubusercontent.com/u/108779266?v=4"/></td>
+    <td><img src="https://avatars.githubusercontent.com/u/73154551?v=4"/></td>
+    <td><img src="https://avatars.githubusercontent.com/u/170912062?v=4"/></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Hwanjin-Choi">최환진</a>
+    </td>
+    <td align="center"><a href="https://github.com/seoyoun8694">채서윤</a>
+    </td>
+    <td align="center"><a href="https://github.com/SoonWookHwang">황순욱</a>
+    </td>
+    <td align="center"><a href="https://github.com/MingyooLee">이민규</a>
+    </td>
+    <td align="center"><a href="https://github.com/BOKJUNSOO">복준수</a>
+  </tr>
+  <tr>
+    <td align="center">Front-End</td>
+    <td align="center">Front-End</td>
+    <td align="center">Back-End</td>
+    <td align="center">Back-End & Deploy</td>
+    <td align="center">Data Engineering</td>
+  </tr>
+</table>
+
+<br>
+
+## 🎈 Project repo
+
+[프론트엔드 서버 레포는 여기!](https://github.com/Hwanjin-Choi/project-seoul-moa-frontend)
+
+[백엔드 서버 레포는 여기!](https://github.com/SoonWookHwang/seoul-moa)
+
+[데이터 파이프라인 서버는 여기!](https://github.com/BOKJUNSOO/seoul-de)
+
+[chat moa 서버는 여기!](https://github.com/BOKJUNSOO/seoul-chat-moa)
+
+<br>
 
 ## 🔥 Data Engineering 에서의 도전 과제
 해당 프로젝트에서 `ETL` 프로세스를 보다 더 <br>
@@ -96,7 +138,7 @@
 
 따라서 다음과 같은 부분을 고려해야 했습니다.
 ```
-세부적인 내용은 아래 링크의 velog에서 확인할 수 있습니다!
+세부적인 내용은 아래 링크의 velog 링크에서 확인할 수 있습니다!
 ```
 
 1. 서버 리소스의 최적화 `(인프라 레벨)`\
