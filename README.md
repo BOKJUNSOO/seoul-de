@@ -2,6 +2,7 @@
    <h1> 서울모아  </h1>
    <h3> 메인 서비스 테이블 구축 자동화 </h3>
    <h3> Airflow Application</h3>
+   <img src='https://github.com/user-attachments/assets/4e97e1f0-d9ac-46b8-bdb3-4d6bef53e5d0'>
 </div>
 
 ## 📢 프로젝트 소개
