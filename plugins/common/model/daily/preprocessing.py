@@ -52,19 +52,18 @@ def modeling(**kwargs):
     model = RandomForestRegressor()
     model.fit(X_TRAIN,Y_TRAIN)
 
-    model_serialized = pickle.dumps(model)
-    model_b64 = base64.b64encode(model_serialized).decode('utf-8')
-
     y_pred = model.predict(X_TEST)
     print("[INFO] - today`s model score :" + str(r2_score(Y_TEST,y_pred)) + "/1")
     
-    ti.xcom_push(key='trained_dataset',value=df)
-    print("[INFO] - xcom_push - key : trained_dataset")
+    with open("/tmp/features.pkl","wb") as f:
+        pickle.dump(df,f)
+    print("[INFO] - save trained data set to tmp directory")
 
     ti.xcom_push(key='ML_encoders', value=pickled_encoders)
     print("[INFO] - xcom_push - key : ML_encoders")
 
-    ti.xcom_push(key='ML_model',value=model_b64)
-    print("[INFO] - xcom_push - key : ML_model")
+    with open("/tmp/random_forest_model.pkl","wb") as f:
+        pickle.dump(model,f)
+    print("[INFO] - save model to tmp directory")
 
     

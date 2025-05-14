@@ -21,17 +21,17 @@ def predict_all_for_date(**kwargs)->pd.DataFrame:
     print("[INFO] - daily modeling task is now running..(total prediction! with model..)")
     print("[INFO] - this is postprocessing")
     
-    df = ti.xcom_pull(key='trained_dataset')
-    print("[INFO] - xcom_pull - key: trained_dataset")
+    with open("/tmp/features.pkl","rb") as f:
+        df = pickle.load(f)
+    print("[INFO] - read features from tmp directory")
     
     pickled_encoders = ti.xcom_pull(key='ML_encoders')
+    encoders = pickle.loads(base64.b64decode(pickled_encoders.encode()))
     print("[INFO] - xcom_pull - key: ML_encoders")
     
-    encoders = pickle.loads(base64.b64decode(pickled_encoders.encode()))
-    # refact model
-    model_64 = ti.xcom_pull(key='ML_model')
-    print("[INFO] - xcom_pull - key: ML_model")
-    model = pickle.loads(base64.b64decode(model_64))
+    with open("/tmp/random_forest_model.pkl","rb") as f:
+        model = pickle.load(f)
+    print("[INFO] - read model from tmp directory")
         
     decoded_df = decode_unique_line_name(df, encoders)
 
@@ -56,12 +56,6 @@ def decode_unique_line_name(df, encoders_info):
     인코딩된 조합을 디코딩하여 원본 값으로 복원
     encoders_info는 'classes_' 리스트 정보만 포함
     """
-    # LabelEncoder 객체 복원
-    # encoders = {}
-    # for col, classes in encoders_info.items():
-    #     le = LabelEncoder()
-    #     le.classes_ = np.array(classes)
-    #     encoders[col] = le
     
     # 고유한 인코딩된 조합 추출
     unique_df = df[['line', 'name']].drop_duplicates().copy()
