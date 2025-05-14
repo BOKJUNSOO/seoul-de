@@ -195,8 +195,11 @@ AI 도입후!
 2. 데이터 분석 및 엔지니어링
    
    [그래서 어떻게 했는가?](https://velog.io/@junsoobok/MLops-DAG-%EA%B5%AC%EC%84%B1-%EB%B0%8F-%EA%B5%AC%ED%98%84)
+
+   [OOM trouble shooting](https://velog.io/@junsoobok/MLops-trouble-shooting)
 - 데이터 분석 및 시각화
 - MLops 파이프라인 구성
+- task instance OOM - trouble shooting
 
 3. output
 
