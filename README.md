@@ -148,7 +148,7 @@
 1. 서버 리소스의 최적화 `(인프라 레벨)`\
 [오버엔지니어링 잡기](https://velog.io/@junsoobok/%EC%84%9C%EB%B2%84-%EB%A6%AC%EC%86%8C%EC%8A%A4)
 
-2. 코드의 모듈화 및 재사용 가능성 `(코드 레벨)`\
+1. 코드의 모듈화 및 재사용 가능성 `(코드 레벨)`\
 [DAG 개발 및 코드의 모듈화](https://velog.io/@junsoobok/2-%EC%BD%94%EB%93%9C%EC%9D%98-%EB%AA%A8%EB%93%88%ED%99%94)
 
 - 백엔드를 맡아주신 팀원과의 소통
@@ -156,7 +156,8 @@
 
 3. 데이터 수집단계, 행사정보 파싱 `(코드 레벨)`\
 [AI 도입기](https://velog.io/@junsoobok/3-HTML-%ED%8C%8C%EC%8B%B1
-)
+)\
+[구축한 데이터셋 RAG에 이용하기](https://velog.io/@junsoobok/chat-moa-Retrieval)
 
 AI 도입전 
 ```
