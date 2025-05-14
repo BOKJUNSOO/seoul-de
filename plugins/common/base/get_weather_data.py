@@ -48,23 +48,22 @@ def get_data(api_key:str,**kwargs):
         }
         for retry in range(1,5):
             try:
-                print(f"{_+1}/25 번째 데이터 {gu}의 데이터를 호출중 입니다.")
+                print(f"[INFO] - {_+1}/25 번째 데이터 {gu}의 데이터를 호출중 입니다.")
                 res = requests.get(url=url,params=params)
                 data = res.json()
                 data = data['response']['body']['items']['item']
                 for item in data:
                     item['gu'] = gu
                 result_list.extend(data)
-                print(data)
                 break
 
             except requests.exceptions.RequestException as e:
-                print(f"공공데이터 포털 weather api 호출중 에러 - {e}")
-                print(f"{_+1}/25 번째 데이터 {gu}의 데이터를 호출중 에러 발생")
-                print(f" 10초후 재시도 합니다.{retry}/4")
+                print(f"[EXCEPTION] - 공공데이터 포털 weather api 호출중 에러 - {e}")
+                print(f"[EXCEPTION] - {_+1}/25 번째 데이터 {gu}의 데이터를 호출중 에러 발생")
+                print(f"[CATCH] - 10초후 재시도 합니다.{retry}/4")
                 time.sleep(10)
                 continue
         
     df = pd.DataFrame(result_list) # 사용할 data는 refine task
-    print("[xcom_push] key : row_dataframe, value : dataframe")
+    print("[INFO] - xcom_push - key : row_dataframe, value : dataframe")
     ti.xcom_push(key='row_dataframe',value=df)

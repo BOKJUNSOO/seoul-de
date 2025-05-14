@@ -2,7 +2,10 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 def make_hourly_dataframe(**kwargs):
+    print("[INFO] - make hourly_data frame with calculate")
     ti = kwargs['ti']
+    print("[INFO] - xcom_pull - key: daily_dataframe")
+    print("[INFO] - xcom_pull - key: subway_data_prev_year")
     df_daily_pred = ti.xcom_pull(task_ids='make_daily_prediction' ,key='daily_dataframe')
     df_prev_year = ti.xcom_pull(task_ids='read_year_day',key='subway_data_prev_year')
     df_daily_pred.info()
@@ -35,5 +38,6 @@ def make_hourly_dataframe(**kwargs):
 
     select_col = ['line','name','date','hour','predicted_total']
     merged_df = merged_df[select_col]
-
+    print("[INFO] - MLops task is done.")
     ti.xcom_push(key='row_dataframe',value=merged_df)
+    print("[INFO] - xcom_push - key: row_dataframe")
