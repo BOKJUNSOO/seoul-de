@@ -25,7 +25,11 @@
 
 <br>
 
-## 🔎 주요 DAG 소개
+## 🔎 데이터 플로우 아키텍처 및 주요 DAG 소개
+
+<br>
+
+<img src='https://github.com/user-attachments/assets/f70099c4-f15c-4dd7-825a-8b9bbf7ed1c3'>
 
 <br>
 
