@@ -79,7 +79,7 @@
 | ---- | ---- |
 | 언어 | <img src= "https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> |
 | 사용 라이브러리 | <img src= "https://img.shields.io/badge/OpenAI%20Python-000000?style=flat-square&logo=openai"> <img src= "https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white"> |
-| 백엔드 | <img src= "https://img.shields.io/badge/Apache%20Airflow-017CEE?style=flat-square&logo=apache-airflow&logoCOlor=auto"> <img src= "https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoCOlor=white"> |
+| 워크플로우 오케스트레이션 | <img src= "https://img.shields.io/badge/Apache%20Airflow-017CEE?style=flat-square&logo=apache-airflow&logoCOlor=auto"> <img src= "https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoCOlor=white"> |
 | 배포 | <img src= "https://img.shields.io/badge/Jenkins-D24939?style=flat-square&logo=jenkins&logoColor=white"> <img src= "https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white"> |
 
 <br>
