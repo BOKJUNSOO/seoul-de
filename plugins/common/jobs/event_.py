@@ -75,10 +75,12 @@ def event_data(**kwargs):
         'ALT':'event_description'
     })
 
+
+
     # 결측치 NULL 저장을 위한 type 지정
     # pandas object type -> 필요한 type 저장
-    df["latitude"] = df['latitude'].astype('float')
-    df["longitude"] = df['longitude'].astype('float')
+    df["latitude"] = pd.to_numeric(df['latitude'], errors='coerce')
+    df["longitude"] = pd.to_numeric(df['longitude'], errors='coerce')
     
     ti.xcom_push(key='refine_dataframe',value=df)
     print("[INFO] - xcom_push - key : refine_dataframe, value : dataframe")
