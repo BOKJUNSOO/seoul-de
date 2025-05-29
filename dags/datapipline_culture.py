@@ -10,7 +10,6 @@ from common.jobs.repository import postgreSQL
 import pendulum
 from datetime import timedelta
 
-# test name
 with DAG (
     dag_id="datapipline_event_seoul_data",
     description="(1일단위) 문화행사 정보를 수집하는 DAG 입니다. 매일 00시에 DAG가 실행됩니다.",
